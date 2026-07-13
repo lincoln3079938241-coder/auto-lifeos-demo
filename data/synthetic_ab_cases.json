@@ -1,0 +1,22 @@
+[
+  {"id":"case_01","query":"今晚高蛋白低脂，30分钟内完成","category":"normal_high_protein"},
+  {"id":"case_02","query":"给我低脂晚餐","category":"low_fat"},
+  {"id":"case_03","query":"素食早餐，10分钟","category":"vegetarian"},
+  {"id":"case_04","query":"我要10000克鸡胸肉","category":"inventory_shortage"},
+  {"id":"case_05","query":"给我花生酱早餐","category":"allergy_conflict"},
+  {"id":"case_06","query":"我要香菜鸡胸肉","category":"avoid_conflict"},
+  {"id":"case_07","query":"用过期酸奶做早餐","category":"expired_food"},
+  {"id":"case_08","query":"make a high protein chicken breast dinner","category":"mixed_language"},
+  {"id":"case_09","query":"随便吃点","category":"ambiguous"},
+  {"id":"case_10","query":"需要负数克燕麦","category":"invalid_amount"},
+  {"id":"case_11","query":"家里库存还有什么","category":"inventory_query"},
+  {"id":"case_12","query":"修改偏好为更多蔬菜","category":"profile_update"},
+  {"id":"case_13","query":"记录饮食：午餐吃了鸡胸肉","category":"food_record"},
+  {"id":"case_14","query":"broccoli chicken breast rice","category":"mixed_language"},
+  {"id":"case_15","query":"30分钟高蛋白番茄鸡胸饭","category":"normal_high_protein"},
+  {"id":"case_16","query":"燕麦牛奶早餐","category":"breakfast"},
+  {"id":"case_17","query":"低脂高蛋白晚餐，不要花生","category":"allergy_conflict"},
+  {"id":"case_18","query":"20分钟的素餐","category":"vegetarian"},
+  {"id":"case_19","query":"chicken breast and tomato, 25分钟","category":"mixed_language"},
+  {"id":"case_20","query":"我需要晚餐推荐","category":"ambiguous"}
+]
