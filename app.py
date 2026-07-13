@@ -16,14 +16,13 @@ if str(PUBLIC_ROOT) not in sys.path:
 from agent.graph import run_agent
 from agent.state import initial_state
 from database.repositories import (
-    catalog_counts as database_catalog_counts,
     latest_executable_transaction,
     list_inventory,
     list_inventory_audit,
     list_inventory_transaction_lines,
     list_knowledge,
 )
-from database.seed import DEMO_USER_ID
+from database.seed import ALIASES, DEMO_USER_ID, FOODS
 from database.session import get_session
 from database.transactions import undo_transaction
 from rag.retriever import retrieve
@@ -761,12 +760,10 @@ def records_page() -> None:
 def project_page() -> None:
     secondary_header("了解项目原理", "以下内容面向希望了解技术实现、工程验证和安全边界的访问者。")
 
-    with get_session() as session:
-        database_counts = database_catalog_counts(session)
     recipe_counts = recipe_catalog_counts()
     st.info(
-        f"当前 Demo 覆盖 {database_counts['foods']} 种内置/会话食材、"
-        f"{database_counts['aliases']} 条常用别名和 {recipe_counts['recipes']} 道结构化菜谱。"
+        f"当前 Demo 覆盖 {len(FOODS)} 种内置食材、"
+        f"{len(ALIASES)} 条常用别名和 {recipe_counts['recipes']} 道结构化菜谱。"
     )
 
     with st.expander("这个项目解决什么问题", expanded=True):
