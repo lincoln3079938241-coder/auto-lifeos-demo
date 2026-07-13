@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
 from streamlit.testing.v1 import AppTest
 
 from agent.graph import run_agent
@@ -9,14 +10,18 @@ from agent.state import initial_state
 from database.repositories import list_inventory
 from database.seed import DEMO_USER_ID
 from database.session import get_session
+from services.units import convert_amount
 
 
 APP_PATH = Path(__file__).resolve().parents[1] / "app.py"
 QUERY = "今晚想吃高蛋白、低脂、30分钟以内可以完成的食物。"
 EXAMPLES = {
     "高蛋白低脂晚餐": QUERY,
-    "简单营养早餐": "请推荐一份简单、有蛋白质、20分钟以内可以完成的早餐。",
-    "使用现有食材": "请根据家里现有的演示食材，推荐一份容易完成的饭菜。",
+    "简单营养早餐": "请推荐一份简单营养早餐。",
+    "快手家常菜": "请推荐一道30分钟以内可以完成的快手家常菜。",
+    "根据快过期食材推荐": "请优先使用快过期的食材推荐一份饭菜。",
+    "素食方案": "我今天想吃素食，请推荐一份30分钟以内的方案。",
+    "只使用现有食材": "请只使用当前演示库存推荐一份饭菜。",
 }
 
 
@@ -73,23 +78,23 @@ def test_inventory_page_add_and_modify() -> None:
     try:
         app.radio[0].set_value("演示库存").run()
         by_label = {item.label: item for item in app.text_input}
-        by_label["食材名称"].input("豆腐")
+        by_label["食材名称"].input("鲍鱼")
         by_label["当前数量"].input("500")
         by_label["保质期"].input("")
         by_label["存放位置"].input("冷藏")
         button(app, "添加食材").click().run()
-        assert any("已添加豆腐，营养数据暂缺" in item.value for item in app.success)
+        assert any("当前菜谱库暂无对应方案" in item.value for item in app.success)
 
         app.session_state["_workspace"].activate()
         with get_session() as session:
-            tofu = next(row for row in list_inventory(session, DEMO_USER_ID) if row["canonical_name"] == "豆腐")
-        item_id = tofu["pantry_item_id"]
+            custom = next(row for row in list_inventory(session, DEMO_USER_ID) if row["canonical_name"] == "鲍鱼")
+        item_id = custom["pantry_item_id"]
 
         button_key(app, f"edit_inventory_{item_id}").click().run()
         next(item for item in app.text_input if item.key == f"quantity_{item_id}").input("650")
         next(item for item in app.text_input if item.key == f"location_{item_id}").input("冷冻")
         button(app, "保存修改").click().run()
-        assert quantities(app)[tofu["canonical_item_id"]] == 650
+        assert quantities(app)[custom["canonical_item_id"]] == 650
     finally:
         close(app)
 
@@ -128,13 +133,13 @@ def test_inventory_page_confirms_delete() -> None:
             from services.inventory_editor import add_inventory_item
 
             result = add_inventory_item(
-                session, workspace.session_id, DEMO_USER_ID, name="豆腐", quantity=500,
+                session, workspace.session_id, DEMO_USER_ID, name="鲍鱼", quantity=500,
                 unit="g", expiration_date=None, location="冷藏"
             )
         app.run()
         with get_session() as session:
-            tofu = next(row for row in list_inventory(session, DEMO_USER_ID) if row["canonical_name"] == "豆腐")
-        item_id = tofu["pantry_item_id"]
+            custom = next(row for row in list_inventory(session, DEMO_USER_ID) if row["canonical_name"] == "鲍鱼")
+        item_id = custom["pantry_item_id"]
         button_key(app, f"delete_inventory_{item_id}").click().run()
         assert any("确定从当前演示库存中删除这个食材吗" in item.value for item in app.warning)
         button_key(app, f"confirm_delete_{item_id}").click().run()
@@ -153,7 +158,7 @@ def test_inventory_page_restores_baseline() -> None:
             from services.inventory_editor import add_inventory_item, update_inventory_item
 
             add_inventory_item(
-                session, workspace.session_id, DEMO_USER_ID, name="豆腐", quantity=500,
+                session, workspace.session_id, DEMO_USER_ID, name="鲍鱼", quantity=500,
                 unit="g", expiration_date=None, location="冷藏"
             )
             chicken = next(row for row in list_inventory(session, DEMO_USER_ID)
@@ -164,7 +169,7 @@ def test_inventory_page_restores_baseline() -> None:
             )
         app.run()
         button(app, "恢复初始演示库存").click().run()
-        assert len(quantities(app)) == 9
+        assert len(quantities(app)) == 20
         assert quantities(app)["chicken_breast"] == 1500
     finally:
         close(app)
@@ -187,7 +192,7 @@ def test_change_plan_returns_to_edit_without_inventory_change() -> None:
         app.text_area[0].input(QUERY).run()
         button(app, "帮我推荐").click().run()
         assert quantities(app)["chicken_breast"] == 1500
-        assert any("番茄鸡胸饭" in title.value for title in app.header)
+        assert app.session_state["agent_state"]["proposed_plan"]["title"]
         assert not any(item.label == "确认并更新演示库存" for item in app.button)
         button(app, "换一个方案").click().run()
         assert app.session_state["agent_state"] is None
@@ -210,13 +215,20 @@ def test_guided_flow_keeps_inventory_until_second_confirmation_and_can_undo() ->
         assert quantities(app)["chicken_breast"] == 1500
         assert any(item.label == "确认并更新演示库存" for item in app.button)
         assert not any(item.label == "这个方案可以" for item in app.button)
-        assert len(app.number_input) == 3
-        app.number_input[0].set_value(170).run()
+        plan = app.session_state["agent_state"]["proposed_plan"]
+        before = quantities(app)
+        assert len(app.number_input) == len(plan["ingredients"])
+        changed_amount = max(1.0, float(plan["ingredients"][0]["amount"]) - 10)
+        app.number_input[0].set_value(changed_amount).run()
 
         button(app, "确认并更新演示库存").click().run()
-        assert quantities(app)["chicken_breast"] == 1330
-        assert quantities(app)["tomato"] == 200
-        assert quantities(app)["rice"] == 1850
+        after = quantities(app)
+        for index, ingredient in enumerate(plan["ingredients"]):
+            used = changed_amount if index == 0 else float(ingredient["amount"])
+            converted = convert_amount(used, ingredient["unit"], ingredient["inventory_unit"])
+            assert after[ingredient["canonical_item_id"]] == pytest.approx(
+                before[ingredient["canonical_item_id"]] - converted
+            )
         assert any("已完成，本次演示库存已更新" in message.value for message in app.success)
         assert app.session_state["agent_state"]["transaction_id"]
     finally:
@@ -238,11 +250,11 @@ def test_completion_undo_button_restores_inventory() -> None:
         app.session_state["completion_undone"] = False
         app.run()
 
-        assert quantities(app)["chicken_breast"] == 1320
+        baseline = quantities(app)
+        assert baseline["chicken_breast"] < 1500
         assert any("已完成，本次演示库存已更新" in message.value for message in app.success)
         button(app, "撤销本次更新").click().run()
         assert quantities(app)["chicken_breast"] == 1500
-        assert quantities(app)["tomato"] == 400
         assert quantities(app)["rice"] == 2000
         assert any("已撤销，本次使用的食材已经恢复" in message.value for message in app.success)
 

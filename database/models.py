@@ -41,6 +41,7 @@ class CanonicalFood(Base):
     carbs_per_100g: Mapped[float | None] = mapped_column(Float, nullable=True)
     fat_per_100g: Mapped[float | None] = mapped_column(Float, nullable=True)
     is_custom: Mapped[bool] = mapped_column(Boolean, default=False)
+    pantry_staple: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
 class FoodAlias(Base):

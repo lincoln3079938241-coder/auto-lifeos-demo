@@ -1,0 +1,282 @@
+[
+  {
+    "recipe_id": "milk_oat_bowl", "name": "牛奶燕麦碗", "meal_type": "早餐",
+    "description": "牛奶与燕麦组成的简易早餐。", "estimated_minutes": 8, "difficulty": "简单", "servings": 1,
+    "required_ingredients": [{"canonical_food_id": "milk", "amount": 250, "unit": "ml", "whether_substitutable": true}, {"canonical_food_id": "oats", "amount": 60, "unit": "g", "whether_substitutable": false}],
+    "optional_ingredients": ["banana", "blueberry"], "pantry_staples": [],
+    "cooking_steps": ["燕麦与牛奶混合加热。", "稍微放凉后即可食用。"],
+    "nutrition_estimate": {"calories_kcal": 385, "protein_g": 18, "carbs_g": 52, "fat_g": 11},
+    "tags": ["早餐", "快手菜", "15分钟以内", "清淡", "主食"],
+    "substitution_rules": [{"from": "milk", "to": "soy_milk", "condition": "库存不足时"}], "allergen_notes": ["含乳制品"]
+  },
+  {
+    "recipe_id": "banana_oat_porridge", "name": "香蕉燕麦粥", "meal_type": "早餐",
+    "description": "香蕉增加自然甜味的燕麦粥。", "estimated_minutes": 10, "difficulty": "简单", "servings": 1,
+    "required_ingredients": [{"canonical_food_id": "oats", "amount": 60, "unit": "g", "whether_substitutable": false}, {"canonical_food_id": "banana", "amount": 120, "unit": "g", "whether_substitutable": false}, {"canonical_food_id": "milk", "amount": 200, "unit": "ml", "whether_substitutable": true}],
+    "optional_ingredients": ["blueberry"], "pantry_staples": [],
+    "cooking_steps": ["燕麦加牛奶煮软。", "加入切片香蕉拌匀。"],
+    "nutrition_estimate": {"calories_kcal": 470, "protein_g": 17, "carbs_g": 78, "fat_g": 10},
+    "tags": ["早餐", "快手菜", "15分钟以内", "素食", "主食"],
+    "substitution_rules": [{"from": "milk", "to": "soy_milk", "condition": "库存不足时"}], "allergen_notes": ["含乳制品"]
+  },
+  {
+    "recipe_id": "egg_whole_wheat_sandwich", "name": "鸡蛋全麦三明治", "meal_type": "早餐",
+    "description": "鸡蛋和全麦面包组成的便携早餐。", "estimated_minutes": 12, "difficulty": "简单", "servings": 1,
+    "required_ingredients": [{"canonical_food_id": "egg", "amount": 2, "unit": "个", "whether_substitutable": false}, {"canonical_food_id": "whole_wheat_bread", "amount": 80, "unit": "g", "whether_substitutable": true}],
+    "optional_ingredients": ["lettuce", "tomato"], "pantry_staples": [{"canonical_food_id": "black_pepper", "amount": 1, "unit": "g"}],
+    "cooking_steps": ["鸡蛋煎熟并撒少量黑胡椒。", "夹入全麦面包中。"],
+    "nutrition_estimate": {"calories_kcal": 342, "protein_g": 23, "carbs_g": 34, "fat_g": 13},
+    "tags": ["早餐", "高蛋白", "快手菜", "15分钟以内", "主食"],
+    "substitution_rules": [{"from": "whole_wheat_bread", "to": "oats", "condition": "仅限早餐"}], "allergen_notes": ["含蛋类"]
+  },
+  {
+    "recipe_id": "tomato_egg_noodles", "name": "番茄鸡蛋面", "meal_type": "早餐",
+    "description": "番茄、鸡蛋和面条组成的热食早餐。", "estimated_minutes": 15, "difficulty": "简单", "servings": 1,
+    "required_ingredients": [{"canonical_food_id": "tomato", "amount": 180, "unit": "g", "whether_substitutable": false}, {"canonical_food_id": "egg", "amount": 2, "unit": "个", "whether_substitutable": false}, {"canonical_food_id": "noodles", "amount": 100, "unit": "g", "whether_substitutable": true}],
+    "optional_ingredients": ["greens"], "pantry_staples": [{"canonical_food_id": "salt", "amount": 1, "unit": "g"}],
+    "cooking_steps": ["番茄炒软后加水煮开。", "加入面条和鸡蛋煮熟。"],
+    "nutrition_estimate": {"calories_kcal": 430, "protein_g": 22, "carbs_g": 52, "fat_g": 14},
+    "tags": ["早餐", "快手菜", "15分钟以内", "清淡", "主食"],
+    "substitution_rules": [{"from": "noodles", "to": "rice", "condition": "非早餐也可"}], "allergen_notes": ["含蛋类"]
+  },
+  {
+    "recipe_id": "yogurt_fruit_bowl", "name": "酸奶水果碗", "meal_type": "早餐",
+    "description": "无糖酸奶搭配水果的清爽早餐。", "estimated_minutes": 5, "difficulty": "简单", "servings": 1,
+    "required_ingredients": [{"canonical_food_id": "plain_yogurt", "amount": 200, "unit": "g", "whether_substitutable": false}, {"canonical_food_id": "banana", "amount": 100, "unit": "g", "whether_substitutable": true}],
+    "optional_ingredients": ["apple", "blueberry", "orange"], "pantry_staples": [],
+    "cooking_steps": ["水果切块。", "与无糖酸奶混合。"],
+    "nutrition_estimate": {"calories_kcal": 215, "protein_g": 12, "carbs_g": 34, "fat_g": 4},
+    "tags": ["早餐", "轻食", "快手菜", "15分钟以内", "素食"],
+    "substitution_rules": [], "allergen_notes": ["含乳制品"]
+  },
+  {
+    "recipe_id": "soy_milk_egg_breakfast", "name": "豆浆鸡蛋早餐", "meal_type": "早餐",
+    "description": "无糖豆浆配鸡蛋的高蛋白早餐。", "estimated_minutes": 10, "difficulty": "简单", "servings": 1,
+    "required_ingredients": [{"canonical_food_id": "soy_milk", "amount": 300, "unit": "ml", "whether_substitutable": true}, {"canonical_food_id": "egg", "amount": 2, "unit": "个", "whether_substitutable": false}],
+    "optional_ingredients": ["whole_wheat_bread"], "pantry_staples": [],
+    "cooking_steps": ["豆浆加热。", "鸡蛋煮熟后搭配食用。"],
+    "nutrition_estimate": {"calories_kcal": 243, "protein_g": 23, "carbs_g": 7, "fat_g": 15},
+    "tags": ["早餐", "高蛋白", "低脂", "快手菜", "15分钟以内"],
+    "substitution_rules": [{"from": "soy_milk", "to": "milk", "condition": "库存不足时"}], "allergen_notes": ["含蛋类和豆制品"]
+  },
+  {
+    "recipe_id": "tomato_egg_rice", "name": "番茄炒蛋配米饭", "meal_type": "午餐/晚餐",
+    "description": "番茄炒蛋搭配米饭的家常组合。", "estimated_minutes": 20, "difficulty": "简单", "servings": 1,
+    "required_ingredients": [{"canonical_food_id": "tomato", "amount": 200, "unit": "g", "whether_substitutable": false}, {"canonical_food_id": "egg", "amount": 2, "unit": "个", "whether_substitutable": false}, {"canonical_food_id": "rice", "amount": 150, "unit": "g", "whether_substitutable": true}],
+    "optional_ingredients": ["scallion"], "pantry_staples": [{"canonical_food_id": "cooking_oil", "amount": 8, "unit": "ml"}, {"canonical_food_id": "salt", "amount": 1, "unit": "g"}],
+    "cooking_steps": ["鸡蛋炒熟盛出。", "番茄炒软后加入鸡蛋，搭配米饭。"],
+    "nutrition_estimate": {"calories_kcal": 476, "protein_g": 19, "carbs_g": 53, "fat_g": 20},
+    "tags": ["午餐", "晚餐", "快手菜", "30分钟以内", "家常", "主食"],
+    "substitution_rules": [{"from": "rice", "to": "noodles", "condition": "库存不足时"}], "allergen_notes": ["含蛋类"]
+  },
+  {
+    "recipe_id": "broccoli_chicken", "name": "西兰花鸡胸肉", "meal_type": "午餐/晚餐",
+    "description": "鸡胸肉搭配西兰花的高蛋白快手菜。", "estimated_minutes": 25, "difficulty": "简单", "servings": 1,
+    "required_ingredients": [{"canonical_food_id": "chicken_breast", "amount": 180, "unit": "g", "whether_substitutable": true}, {"canonical_food_id": "broccoli", "amount": 200, "unit": "g", "whether_substitutable": true}],
+    "optional_ingredients": ["carrot"], "pantry_staples": [{"canonical_food_id": "cooking_oil", "amount": 6, "unit": "ml"}, {"canonical_food_id": "soy_sauce", "amount": 8, "unit": "ml"}],
+    "cooking_steps": ["鸡胸肉切片煎熟。", "西兰花焯水后一起翻炒。"],
+    "nutrition_estimate": {"calories_kcal": 390, "protein_g": 62, "carbs_g": 14, "fat_g": 10},
+    "tags": ["午餐", "晚餐", "高蛋白", "低脂", "30分钟以内", "清淡"],
+    "substitution_rules": [{"from": "chicken_breast", "to": "chicken_thigh", "condition": "库存不足时"}, {"from": "broccoli", "to": "greens", "condition": "库存不足时"}], "allergen_notes": []
+  },
+  {
+    "recipe_id": "shiitake_chicken_rice", "name": "香菇鸡肉饭", "meal_type": "午餐/晚餐",
+    "description": "香菇鸡肉和米饭组成的家常主食。", "estimated_minutes": 30, "difficulty": "中等", "servings": 1,
+    "required_ingredients": [{"canonical_food_id": "chicken_thigh", "amount": 180, "unit": "g", "whether_substitutable": true}, {"canonical_food_id": "shiitake", "amount": 120, "unit": "g", "whether_substitutable": true}, {"canonical_food_id": "rice", "amount": 150, "unit": "g", "whether_substitutable": true}],
+    "optional_ingredients": ["carrot"], "pantry_staples": [{"canonical_food_id": "soy_sauce", "amount": 10, "unit": "ml"}],
+    "cooking_steps": ["鸡肉和香菇炒熟。", "与米饭一起焖至入味。"],
+    "nutrition_estimate": {"calories_kcal": 610, "protein_g": 48, "carbs_g": 51, "fat_g": 23},
+    "tags": ["午餐", "晚餐", "高蛋白", "30分钟以内", "家常", "主食"],
+    "substitution_rules": [{"from": "chicken_thigh", "to": "chicken_breast", "condition": "库存不足时"}, {"from": "shiitake", "to": "mushroom", "condition": "库存不足时"}], "allergen_notes": []
+  },
+  {
+    "recipe_id": "green_pepper_beef", "name": "青椒牛肉", "meal_type": "午餐/晚餐",
+    "description": "青椒与牛肉快速翻炒。", "estimated_minutes": 20, "difficulty": "中等", "servings": 1,
+    "required_ingredients": [{"canonical_food_id": "beef", "amount": 180, "unit": "g", "whether_substitutable": true}, {"canonical_food_id": "green_pepper", "amount": 150, "unit": "g", "whether_substitutable": false}],
+    "optional_ingredients": ["onion"], "pantry_staples": [{"canonical_food_id": "cooking_oil", "amount": 8, "unit": "ml"}, {"canonical_food_id": "soy_sauce", "amount": 10, "unit": "ml"}],
+    "cooking_steps": ["牛肉切片快速滑炒。", "加入青椒炒至断生。"],
+    "nutrition_estimate": {"calories_kcal": 520, "protein_g": 49, "carbs_g": 9, "fat_g": 31},
+    "tags": ["午餐", "晚餐", "高蛋白", "快手菜", "30分钟以内", "家常"],
+    "substitution_rules": [{"from": "beef", "to": "lean_pork", "condition": "库存不足时"}], "allergen_notes": []
+  },
+  {
+    "recipe_id": "onion_beef_rice", "name": "洋葱牛肉饭", "meal_type": "午餐/晚餐",
+    "description": "洋葱牛肉搭配米饭。", "estimated_minutes": 25, "difficulty": "简单", "servings": 1,
+    "required_ingredients": [{"canonical_food_id": "beef", "amount": 180, "unit": "g", "whether_substitutable": true}, {"canonical_food_id": "onion", "amount": 150, "unit": "g", "whether_substitutable": false}, {"canonical_food_id": "rice", "amount": 150, "unit": "g", "whether_substitutable": true}],
+    "optional_ingredients": ["carrot"], "pantry_staples": [{"canonical_food_id": "soy_sauce", "amount": 10, "unit": "ml"}],
+    "cooking_steps": ["牛肉和洋葱炒熟。", "铺在米饭上。"],
+    "nutrition_estimate": {"calories_kcal": 670, "protein_g": 52, "carbs_g": 67, "fat_g": 24},
+    "tags": ["午餐", "晚餐", "高蛋白", "30分钟以内", "主食"],
+    "substitution_rules": [{"from": "beef", "to": "lean_pork", "condition": "库存不足时"}], "allergen_notes": []
+  },
+  {
+    "recipe_id": "tomato_tofu", "name": "番茄豆腐", "meal_type": "午餐/晚餐",
+    "description": "番茄和老豆腐组成的清淡素食。", "estimated_minutes": 20, "difficulty": "简单", "servings": 1,
+    "required_ingredients": [{"canonical_food_id": "tomato", "amount": 200, "unit": "g", "whether_substitutable": false}, {"canonical_food_id": "firm_tofu", "amount": 250, "unit": "g", "whether_substitutable": true}],
+    "optional_ingredients": ["scallion"], "pantry_staples": [{"canonical_food_id": "salt", "amount": 1, "unit": "g"}],
+    "cooking_steps": ["豆腐切块煎至定型。", "加入番茄焖煮入味。"],
+    "nutrition_estimate": {"calories_kcal": 280, "protein_g": 27, "carbs_g": 14, "fat_g": 13},
+    "tags": ["午餐", "晚餐", "素食", "低脂", "快手菜", "30分钟以内", "清淡"],
+    "substitution_rules": [{"from": "firm_tofu", "to": "soft_tofu", "condition": "库存不足时"}], "allergen_notes": ["含豆制品"]
+  },
+  {
+    "recipe_id": "home_style_tofu", "name": "家常烧豆腐", "meal_type": "午餐/晚餐",
+    "description": "老豆腐搭配彩椒和洋葱的家常菜。", "estimated_minutes": 25, "difficulty": "中等", "servings": 1,
+    "required_ingredients": [{"canonical_food_id": "firm_tofu", "amount": 250, "unit": "g", "whether_substitutable": true}, {"canonical_food_id": "bell_pepper", "amount": 100, "unit": "g", "whether_substitutable": true}, {"canonical_food_id": "onion", "amount": 80, "unit": "g", "whether_substitutable": false}],
+    "optional_ingredients": ["mushroom"], "pantry_staples": [{"canonical_food_id": "soy_sauce", "amount": 10, "unit": "ml"}],
+    "cooking_steps": ["豆腐煎至两面微黄。", "加入彩椒和洋葱翻炒调味。"],
+    "nutrition_estimate": {"calories_kcal": 330, "protein_g": 29, "carbs_g": 20, "fat_g": 17},
+    "tags": ["午餐", "晚餐", "素食", "30分钟以内", "家常"],
+    "substitution_rules": [{"from": "firm_tofu", "to": "soft_tofu", "condition": "库存不足时"}, {"from": "bell_pepper", "to": "green_pepper", "condition": "库存不足时"}], "allergen_notes": ["含豆制品"]
+  },
+  {
+    "recipe_id": "shrimp_scrambled_egg", "name": "虾仁炒蛋", "meal_type": "午餐/晚餐",
+    "description": "虾仁和鸡蛋快速炒制。", "estimated_minutes": 15, "difficulty": "简单", "servings": 1,
+    "required_ingredients": [{"canonical_food_id": "shrimp", "amount": 150, "unit": "g", "whether_substitutable": true}, {"canonical_food_id": "egg", "amount": 2, "unit": "个", "whether_substitutable": false}],
+    "optional_ingredients": ["scallion"], "pantry_staples": [{"canonical_food_id": "cooking_oil", "amount": 6, "unit": "ml"}],
+    "cooking_steps": ["虾仁炒至变色。", "倒入蛋液炒熟。"],
+    "nutrition_estimate": {"calories_kcal": 350, "protein_g": 49, "carbs_g": 2, "fat_g": 16},
+    "tags": ["午餐", "晚餐", "高蛋白", "低脂", "快手菜", "15分钟以内"],
+    "substitution_rules": [{"from": "shrimp", "to": "fish", "condition": "库存不足时"}], "allergen_notes": ["含甲壳类和蛋类"]
+  },
+  {
+    "recipe_id": "broccoli_shrimp", "name": "西兰花虾仁", "meal_type": "午餐/晚餐",
+    "description": "西兰花与虾仁的清淡组合。", "estimated_minutes": 20, "difficulty": "简单", "servings": 1,
+    "required_ingredients": [{"canonical_food_id": "shrimp", "amount": 160, "unit": "g", "whether_substitutable": true}, {"canonical_food_id": "broccoli", "amount": 200, "unit": "g", "whether_substitutable": true}],
+    "optional_ingredients": ["carrot"], "pantry_staples": [{"canonical_food_id": "garlic", "amount": 5, "unit": "g"}],
+    "cooking_steps": ["西兰花焯水。", "虾仁炒熟后加入西兰花。"],
+    "nutrition_estimate": {"calories_kcal": 260, "protein_g": 44, "carbs_g": 15, "fat_g": 4},
+    "tags": ["午餐", "晚餐", "高蛋白", "低脂", "快手菜", "30分钟以内", "清淡"],
+    "substitution_rules": [{"from": "shrimp", "to": "fish", "condition": "库存不足时"}, {"from": "broccoli", "to": "greens", "condition": "库存不足时"}], "allergen_notes": ["含甲壳类"]
+  },
+  {
+    "recipe_id": "carrot_chicken_rice", "name": "胡萝卜鸡肉饭", "meal_type": "午餐/晚餐",
+    "description": "胡萝卜鸡胸肉搭配米饭。", "estimated_minutes": 25, "difficulty": "简单", "servings": 1,
+    "required_ingredients": [{"canonical_food_id": "chicken_breast", "amount": 180, "unit": "g", "whether_substitutable": true}, {"canonical_food_id": "carrot", "amount": 120, "unit": "g", "whether_substitutable": false}, {"canonical_food_id": "rice", "amount": 150, "unit": "g", "whether_substitutable": true}],
+    "optional_ingredients": ["onion"], "pantry_staples": [{"canonical_food_id": "soy_sauce", "amount": 8, "unit": "ml"}],
+    "cooking_steps": ["鸡肉与胡萝卜翻炒。", "搭配米饭装盘。"],
+    "nutrition_estimate": {"calories_kcal": 560, "protein_g": 61, "carbs_g": 62, "fat_g": 8},
+    "tags": ["午餐", "晚餐", "高蛋白", "低脂", "30分钟以内", "主食"],
+    "substitution_rules": [{"from": "chicken_breast", "to": "chicken_thigh", "condition": "库存不足时"}], "allergen_notes": []
+  },
+  {
+    "recipe_id": "mushroom_chicken", "name": "蘑菇鸡胸肉", "meal_type": "午餐/晚餐",
+    "description": "蘑菇与鸡胸肉快速翻炒。", "estimated_minutes": 20, "difficulty": "简单", "servings": 1,
+    "required_ingredients": [{"canonical_food_id": "chicken_breast", "amount": 180, "unit": "g", "whether_substitutable": true}, {"canonical_food_id": "mushroom", "amount": 180, "unit": "g", "whether_substitutable": true}],
+    "optional_ingredients": ["onion"], "pantry_staples": [{"canonical_food_id": "black_pepper", "amount": 1, "unit": "g"}],
+    "cooking_steps": ["鸡胸肉煎熟。", "加入蘑菇炒至变软。"],
+    "nutrition_estimate": {"calories_kcal": 350, "protein_g": 62, "carbs_g": 6, "fat_g": 8},
+    "tags": ["午餐", "晚餐", "高蛋白", "低脂", "快手菜", "30分钟以内"],
+    "substitution_rules": [{"from": "chicken_breast", "to": "chicken_thigh", "condition": "库存不足时"}, {"from": "mushroom", "to": "shiitake", "condition": "库存不足时"}], "allergen_notes": []
+  },
+  {
+    "recipe_id": "tomato_beef_noodles", "name": "番茄牛肉面", "meal_type": "午餐/晚餐",
+    "description": "番茄牛肉汤搭配面条。", "estimated_minutes": 30, "difficulty": "中等", "servings": 1,
+    "required_ingredients": [{"canonical_food_id": "beef", "amount": 160, "unit": "g", "whether_substitutable": true}, {"canonical_food_id": "tomato", "amount": 200, "unit": "g", "whether_substitutable": false}, {"canonical_food_id": "noodles", "amount": 120, "unit": "g", "whether_substitutable": true}],
+    "optional_ingredients": ["greens"], "pantry_staples": [{"canonical_food_id": "salt", "amount": 1, "unit": "g"}],
+    "cooking_steps": ["牛肉和番茄煮成汤底。", "加入面条煮熟。"],
+    "nutrition_estimate": {"calories_kcal": 650, "protein_g": 51, "carbs_g": 64, "fat_g": 21},
+    "tags": ["午餐", "晚餐", "高蛋白", "30分钟以内", "主食"],
+    "substitution_rules": [{"from": "beef", "to": "lean_pork", "condition": "库存不足时"}], "allergen_notes": []
+  },
+  {
+    "recipe_id": "greens_egg_noodles", "name": "青菜鸡蛋面", "meal_type": "午餐/晚餐",
+    "description": "青菜鸡蛋搭配面条的清淡汤面。", "estimated_minutes": 15, "difficulty": "简单", "servings": 1,
+    "required_ingredients": [{"canonical_food_id": "greens", "amount": 150, "unit": "g", "whether_substitutable": true}, {"canonical_food_id": "egg", "amount": 2, "unit": "个", "whether_substitutable": false}, {"canonical_food_id": "noodles", "amount": 110, "unit": "g", "whether_substitutable": true}],
+    "optional_ingredients": ["tomato"], "pantry_staples": [{"canonical_food_id": "salt", "amount": 1, "unit": "g"}],
+    "cooking_steps": ["面条煮至八成熟。", "加入青菜和鸡蛋煮熟。"],
+    "nutrition_estimate": {"calories_kcal": 430, "protein_g": 23, "carbs_g": 54, "fat_g": 14},
+    "tags": ["午餐", "晚餐", "快手菜", "15分钟以内", "清淡", "主食"],
+    "substitution_rules": [{"from": "greens", "to": "broccoli", "condition": "库存不足时"}, {"from": "noodles", "to": "rice", "condition": "库存不足时"}], "allergen_notes": ["含蛋类"]
+  },
+  {
+    "recipe_id": "cabbage_tofu_soup", "name": "白菜豆腐汤", "meal_type": "午餐/晚餐",
+    "description": "白菜和嫩豆腐煮成的清淡汤。", "estimated_minutes": 20, "difficulty": "简单", "servings": 1,
+    "required_ingredients": [{"canonical_food_id": "cabbage", "amount": 200, "unit": "g", "whether_substitutable": true}, {"canonical_food_id": "soft_tofu", "amount": 250, "unit": "g", "whether_substitutable": true}],
+    "optional_ingredients": ["mushroom"], "pantry_staples": [{"canonical_food_id": "salt", "amount": 1, "unit": "g"}],
+    "cooking_steps": ["白菜煮软。", "加入嫩豆腐再煮五分钟。"],
+    "nutrition_estimate": {"calories_kcal": 175, "protein_g": 15, "carbs_g": 11, "fat_g": 8},
+    "tags": ["午餐", "晚餐", "素食", "低脂", "快手菜", "30分钟以内", "清淡"],
+    "substitution_rules": [{"from": "soft_tofu", "to": "firm_tofu", "condition": "库存不足时"}], "allergen_notes": ["含豆制品"]
+  },
+  {
+    "recipe_id": "potato_chicken", "name": "土豆鸡肉", "meal_type": "午餐/晚餐",
+    "description": "土豆与鸡腿肉焖煮。", "estimated_minutes": 30, "difficulty": "中等", "servings": 1,
+    "required_ingredients": [{"canonical_food_id": "potato", "amount": 220, "unit": "g", "whether_substitutable": false}, {"canonical_food_id": "chicken_thigh", "amount": 180, "unit": "g", "whether_substitutable": true}],
+    "optional_ingredients": ["carrot"], "pantry_staples": [{"canonical_food_id": "soy_sauce", "amount": 10, "unit": "ml"}],
+    "cooking_steps": ["鸡肉煎至表面变色。", "加入土豆焖熟。"],
+    "nutrition_estimate": {"calories_kcal": 565, "protein_g": 51, "carbs_g": 38, "fat_g": 23},
+    "tags": ["午餐", "晚餐", "高蛋白", "30分钟以内", "家常"],
+    "substitution_rules": [{"from": "chicken_thigh", "to": "chicken_breast", "condition": "库存不足时"}], "allergen_notes": []
+  },
+  {
+    "recipe_id": "sweet_potato_egg_light_meal", "name": "红薯鸡蛋轻食", "meal_type": "午餐/晚餐",
+    "description": "红薯搭配鸡蛋的简单轻食。", "estimated_minutes": 20, "difficulty": "简单", "servings": 1,
+    "required_ingredients": [{"canonical_food_id": "sweet_potato", "amount": 220, "unit": "g", "whether_substitutable": false}, {"canonical_food_id": "egg", "amount": 2, "unit": "个", "whether_substitutable": false}],
+    "optional_ingredients": ["cucumber"], "pantry_staples": [{"canonical_food_id": "black_pepper", "amount": 1, "unit": "g"}],
+    "cooking_steps": ["红薯蒸熟切块。", "搭配煮鸡蛋食用。"],
+    "nutrition_estimate": {"calories_kcal": 333, "protein_g": 16, "carbs_g": 45, "fat_g": 10},
+    "tags": ["午餐", "晚餐", "轻食", "素食", "低脂", "30分钟以内"],
+    "substitution_rules": [], "allergen_notes": ["含蛋类"]
+  },
+  {
+    "recipe_id": "vegetable_fried_rice", "name": "蔬菜炒饭", "meal_type": "午餐/晚餐",
+    "description": "胡萝卜、青菜和鸡蛋炒米饭。", "estimated_minutes": 15, "difficulty": "简单", "servings": 1,
+    "required_ingredients": [{"canonical_food_id": "rice", "amount": 180, "unit": "g", "whether_substitutable": true}, {"canonical_food_id": "egg", "amount": 1, "unit": "个", "whether_substitutable": false}, {"canonical_food_id": "carrot", "amount": 80, "unit": "g", "whether_substitutable": false}, {"canonical_food_id": "greens", "amount": 100, "unit": "g", "whether_substitutable": true}],
+    "optional_ingredients": ["corn", "onion"], "pantry_staples": [{"canonical_food_id": "cooking_oil", "amount": 8, "unit": "ml"}],
+    "cooking_steps": ["鸡蛋和蔬菜炒熟。", "加入米饭翻炒均匀。"],
+    "nutrition_estimate": {"calories_kcal": 445, "protein_g": 15, "carbs_g": 61, "fat_g": 16},
+    "tags": ["午餐", "晚餐", "素食", "快手菜", "15分钟以内", "家常", "主食"],
+    "substitution_rules": [{"from": "greens", "to": "broccoli", "condition": "库存不足时"}], "allergen_notes": ["含蛋类"]
+  },
+  {
+    "recipe_id": "egg_vegetable_noodles", "name": "鸡蛋蔬菜炒面", "meal_type": "午餐/晚餐",
+    "description": "鸡蛋、青菜和胡萝卜炒面。", "estimated_minutes": 20, "difficulty": "简单", "servings": 1,
+    "required_ingredients": [{"canonical_food_id": "noodles", "amount": 120, "unit": "g", "whether_substitutable": true}, {"canonical_food_id": "egg", "amount": 2, "unit": "个", "whether_substitutable": false}, {"canonical_food_id": "greens", "amount": 120, "unit": "g", "whether_substitutable": true}, {"canonical_food_id": "carrot", "amount": 60, "unit": "g", "whether_substitutable": false}],
+    "optional_ingredients": ["onion"], "pantry_staples": [{"canonical_food_id": "soy_sauce", "amount": 8, "unit": "ml"}],
+    "cooking_steps": ["面条煮熟沥水。", "与鸡蛋和蔬菜一起翻炒。"],
+    "nutrition_estimate": {"calories_kcal": 505, "protein_g": 25, "carbs_g": 65, "fat_g": 16},
+    "tags": ["午餐", "晚餐", "快手菜", "30分钟以内", "家常", "主食"],
+    "substitution_rules": [{"from": "greens", "to": "broccoli", "condition": "库存不足时"}], "allergen_notes": ["含蛋类"]
+  },
+  {
+    "recipe_id": "chicken_vegetable_salad", "name": "鸡胸肉蔬菜沙拉", "meal_type": "轻食",
+    "description": "鸡胸肉、生菜和黄瓜组成的高蛋白沙拉。", "estimated_minutes": 20, "difficulty": "简单", "servings": 1,
+    "required_ingredients": [{"canonical_food_id": "chicken_breast", "amount": 160, "unit": "g", "whether_substitutable": true}, {"canonical_food_id": "lettuce", "amount": 120, "unit": "g", "whether_substitutable": true}, {"canonical_food_id": "cucumber", "amount": 120, "unit": "g", "whether_substitutable": false}],
+    "optional_ingredients": ["tomato", "corn"], "pantry_staples": [{"canonical_food_id": "vinegar", "amount": 8, "unit": "ml"}, {"canonical_food_id": "black_pepper", "amount": 1, "unit": "g"}],
+    "cooking_steps": ["鸡胸肉煎熟切片。", "与洗净切好的蔬菜拌匀。"],
+    "nutrition_estimate": {"calories_kcal": 325, "protein_g": 53, "carbs_g": 10, "fat_g": 8},
+    "tags": ["午餐", "晚餐", "轻食", "高蛋白", "低脂", "30分钟以内", "清淡"],
+    "substitution_rules": [{"from": "chicken_breast", "to": "chicken_thigh", "condition": "库存不足时"}, {"from": "lettuce", "to": "greens", "condition": "库存不足时"}], "allergen_notes": []
+  },
+  {
+    "recipe_id": "egg_lettuce_sandwich", "name": "鸡蛋生菜三明治", "meal_type": "轻食",
+    "description": "鸡蛋、生菜和全麦面包组成的轻食。", "estimated_minutes": 12, "difficulty": "简单", "servings": 1,
+    "required_ingredients": [{"canonical_food_id": "egg", "amount": 2, "unit": "个", "whether_substitutable": false}, {"canonical_food_id": "lettuce", "amount": 80, "unit": "g", "whether_substitutable": true}, {"canonical_food_id": "whole_wheat_bread", "amount": 80, "unit": "g", "whether_substitutable": true}],
+    "optional_ingredients": ["tomato", "cucumber"], "pantry_staples": [{"canonical_food_id": "black_pepper", "amount": 1, "unit": "g"}],
+    "cooking_steps": ["鸡蛋煎熟。", "与生菜夹入全麦面包。"],
+    "nutrition_estimate": {"calories_kcal": 350, "protein_g": 24, "carbs_g": 36, "fat_g": 13},
+    "tags": ["早餐", "轻食", "快手菜", "15分钟以内", "素食"],
+    "substitution_rules": [{"from": "lettuce", "to": "greens", "condition": "库存不足时"}, {"from": "whole_wheat_bread", "to": "oats", "condition": "仅限早餐"}], "allergen_notes": ["含蛋类"]
+  },
+  {
+    "recipe_id": "cucumber_egg_bowl", "name": "黄瓜鸡蛋轻食碗", "meal_type": "轻食",
+    "description": "黄瓜和鸡蛋组成的清爽轻食。", "estimated_minutes": 10, "difficulty": "简单", "servings": 1,
+    "required_ingredients": [{"canonical_food_id": "cucumber", "amount": 200, "unit": "g", "whether_substitutable": false}, {"canonical_food_id": "egg", "amount": 2, "unit": "个", "whether_substitutable": false}],
+    "optional_ingredients": ["corn", "tomato"], "pantry_staples": [{"canonical_food_id": "vinegar", "amount": 5, "unit": "ml"}],
+    "cooking_steps": ["鸡蛋煮熟切块。", "与黄瓜拌匀。"],
+    "nutrition_estimate": {"calories_kcal": 190, "protein_g": 14, "carbs_g": 8, "fat_g": 10},
+    "tags": ["午餐", "晚餐", "轻食", "低脂", "快手菜", "15分钟以内", "清淡", "素食"],
+    "substitution_rules": [], "allergen_notes": ["含蛋类"]
+  },
+  {
+    "recipe_id": "tofu_vegetable_bowl", "name": "豆腐蔬菜碗", "meal_type": "轻食",
+    "description": "老豆腐搭配西兰花和胡萝卜的素食碗。", "estimated_minutes": 20, "difficulty": "简单", "servings": 1,
+    "required_ingredients": [{"canonical_food_id": "firm_tofu", "amount": 250, "unit": "g", "whether_substitutable": true}, {"canonical_food_id": "broccoli", "amount": 150, "unit": "g", "whether_substitutable": true}, {"canonical_food_id": "carrot", "amount": 100, "unit": "g", "whether_substitutable": false}],
+    "optional_ingredients": ["cucumber", "mushroom"], "pantry_staples": [{"canonical_food_id": "soy_sauce", "amount": 6, "unit": "ml"}],
+    "cooking_steps": ["豆腐煎熟。", "蔬菜焯熟后与豆腐装碗。"],
+    "nutrition_estimate": {"calories_kcal": 310, "protein_g": 32, "carbs_g": 24, "fat_g": 14},
+    "tags": ["午餐", "晚餐", "轻食", "素食", "高蛋白", "低脂", "30分钟以内", "清淡"],
+    "substitution_rules": [{"from": "firm_tofu", "to": "soft_tofu", "condition": "库存不足时"}, {"from": "broccoli", "to": "greens", "condition": "库存不足时"}], "allergen_notes": ["含豆制品"]
+  }
+]

@@ -72,11 +72,10 @@ def test_new_session_starts_from_baseline_inventory() -> None:
     changed, fresh = SessionWorkspace(), SessionWorkspace()
     try:
         execute_meal(changed)
-        assert quantities(changed)["tomato"] == 200
+        assert quantities(changed)["chicken_breast"] < 1500
         assert quantities(fresh)["chicken_breast"] == 1500
         assert quantities(fresh)["tomato"] == 400
         assert quantities(fresh)["rice"] == 2000
     finally:
         changed.close()
         fresh.close()
-

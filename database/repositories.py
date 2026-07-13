@@ -4,7 +4,7 @@ import json
 from datetime import date
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from database.models import (AuditLog, CanonicalFood, DietRecord, FoodAlias, InventoryTransaction,
@@ -58,7 +58,7 @@ def list_inventory(session: Session, user_id: str, include_expired: bool = True,
                            "quantity": item.quantity, "unit": item.unit, "expiration_date": item.expiration_date,
                            "location": item.location, "version": item.version, "expired": expired,
                            "active": item.active, "deleted_at": item.deleted_at, "is_custom": food.is_custom,
-                           "nutrition_available": nutrition_available,
+                           "pantry_staple": food.pantry_staple, "nutrition_available": nutrition_available,
                            "calories_per_100g": food.calories_per_100g, "protein_per_100g": food.protein_per_100g,
                            "carbs_per_100g": food.carbs_per_100g, "fat_per_100g": food.fat_per_100g})
     return result
@@ -66,6 +66,13 @@ def list_inventory(session: Session, user_id: str, include_expired: bool = True,
 
 def list_foods(session: Session) -> list[CanonicalFood]:
     return session.scalars(select(CanonicalFood).order_by(CanonicalFood.canonical_name)).all()
+
+
+def catalog_counts(session: Session) -> dict[str, int]:
+    return {
+        "foods": int(session.scalar(select(func.count()).select_from(CanonicalFood)) or 0),
+        "aliases": int(session.scalar(select(func.count()).select_from(FoodAlias)) or 0),
+    }
 
 
 def add_pantry_item(session: Session, user_id: str, canonical_food_id: str, quantity: float, unit: str,

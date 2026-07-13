@@ -35,7 +35,7 @@ def item(workspace: SessionWorkspace, food_id: str) -> dict:
 def add(workspace: SessionWorkspace, **overrides) -> dict:
     workspace.activate()
     values = {
-        "name": "豆腐",
+        "name": "鲍鱼",
         "quantity": 500,
         "unit": "g",
         "expiration_date": None,
@@ -80,10 +80,10 @@ def execute_meal(workspace: SessionWorkspace) -> dict:
     return run_agent(state)
 
 
-def test_new_session_receives_nine_baseline_items() -> None:
+def test_new_session_receives_twenty_baseline_items() -> None:
     workspace = SessionWorkspace()
     try:
-        assert len(rows(workspace)) == 9
+        assert len(rows(workspace)) == 20
         assert item(workspace, "chicken_breast")["quantity"] == 1500
     finally:
         workspace.close()
@@ -165,7 +165,10 @@ def test_delete_removes_food_from_recommendation_candidates() -> None:
         delete(workspace, item(workspace, "chicken_breast")["pantry_item_id"])
         state = proposed(workspace)
         assert all(row["canonical_item_id"] != "chicken_breast" for row in state["inventory_snapshot"])
-        assert not state.get("proposed_plan")
+        assert all(
+            ingredient["canonical_item_id"] != "chicken_breast"
+            for ingredient in state["proposed_plan"]["ingredients"]
+        )
     finally:
         workspace.close()
 
@@ -230,8 +233,8 @@ def test_session_a_edit_does_not_affect_session_b() -> None:
     try:
         add(first)
         update(first, item(first, "chicken_breast")["pantry_item_id"], quantity=300)
-        assert len(rows(first)) == 10
-        assert len(rows(second)) == 9
+        assert len(rows(first)) == 21
+        assert len(rows(second)) == 20
         assert item(second, "chicken_breast")["quantity"] == 1500
     finally:
         first.close()
@@ -247,7 +250,7 @@ def test_restore_baseline_only_changes_current_session() -> None:
         first.activate()
         with get_session() as session:
             restore_baseline_inventory(session, first.session_id, DEMO_USER_ID)
-        assert len(rows(first)) == 9
+        assert len(rows(first)) == 20
         assert item(first, "chicken_breast")["quantity"] == 1500
         assert item(second, "chicken_breast")["quantity"] == 700
     finally:
@@ -272,7 +275,10 @@ def test_recommendation_uses_updated_quantity_and_rejects_insufficient_plan() ->
         update(workspace, chicken["pantry_item_id"], quantity=100)
         state = proposed(workspace)
         assert next(row for row in state["inventory_snapshot"] if row["canonical_item_id"] == "chicken_breast")["quantity"] == 100
-        assert not state.get("proposed_plan")
+        assert all(
+            ingredient["canonical_item_id"] != "chicken_breast"
+            for ingredient in state["proposed_plan"]["ingredients"]
+        )
     finally:
         workspace.close()
 
@@ -285,7 +291,10 @@ def test_expired_food_is_not_executable_and_near_expiry_is_flagged() -> None:
                expiration_date=(date.today() - timedelta(days=1)).isoformat())
         state = proposed(workspace)
         assert all(row["canonical_item_id"] != "chicken_breast" for row in state["eligible_inventory"])
-        assert not state.get("proposed_plan")
+        assert all(
+            ingredient["canonical_item_id"] != "chicken_breast"
+            for ingredient in state["proposed_plan"]["ingredients"]
+        )
     finally:
         workspace.close()
 

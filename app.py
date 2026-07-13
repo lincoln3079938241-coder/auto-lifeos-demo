@@ -16,6 +16,7 @@ if str(PUBLIC_ROOT) not in sys.path:
 from agent.graph import run_agent
 from agent.state import initial_state
 from database.repositories import (
+    catalog_counts as database_catalog_counts,
     latest_executable_transaction,
     list_inventory,
     list_inventory_audit,
@@ -36,6 +37,7 @@ from services.inventory_editor import (
     soft_delete_inventory_item,
     update_inventory_item,
 )
+from services.recipes import catalog_counts as recipe_catalog_counts
 from services.units import convert_amount
 from session_store import SessionWorkspace
 
@@ -95,8 +97,11 @@ st.markdown(
 
 SAMPLE_QUERIES = {
     "高蛋白低脂晚餐": "今晚想吃高蛋白、低脂、30分钟以内可以完成的食物。",
-    "简单营养早餐": "请推荐一份简单、有蛋白质、20分钟以内可以完成的早餐。",
-    "使用现有食材": "请根据家里现有的演示食材，推荐一份容易完成的饭菜。",
+    "简单营养早餐": "请推荐一份简单营养早餐。",
+    "快手家常菜": "请推荐一道30分钟以内可以完成的快手家常菜。",
+    "根据快过期食材推荐": "请优先使用快过期的食材推荐一份饭菜。",
+    "素食方案": "我今天想吃素食，请推荐一份30分钟以内的方案。",
+    "只使用现有食材": "请只使用当前演示库存推荐一份饭菜。",
 }
 
 NODE_LABELS = {
@@ -246,6 +251,7 @@ def recommendation_card(state: dict) -> None:
         st.markdown('<div class="section-kicker">为你找到一份容易执行的方案</div>', unsafe_allow_html=True)
         st.header(plan["title"])
         st.write(plan["description"])
+        st.caption(f"适合：{plan['meal_type']} · 难度：{plan['difficulty']} · {plan['servings']} 人份")
         metrics = st.columns(3)
         metrics[0].metric("预计完成时间", f"{plan['estimated_minutes']} 分钟")
         metrics[1].metric("预计热量", f"{plan['calories_kcal']} kcal")
@@ -270,6 +276,14 @@ def recommendation_card(state: dict) -> None:
         if plan.get("warnings"):
             st.markdown("#### 注意事项")
             st.info("；".join(plan["warnings"]))
+        if plan.get("substitutions"):
+            st.markdown("#### 替换说明")
+            for note in plan["substitutions"]:
+                st.write(note)
+        if plan.get("missing_ingredients"):
+            st.markdown("#### 缺少食材提示")
+            for note in plan["missing_ingredients"]:
+                st.caption(note)
 
     with st.expander("查看详细技术信息"):
         st.write("生成方式：Mock Provider（本地规则模拟，不需要 API Key）")
@@ -368,11 +382,13 @@ def start_page() -> None:
             st.info(notice)
         st.markdown("### 你今天想吃什么？")
         st.caption("可以告诉我时间、口味或饮食要求，例如“高蛋白、少油、30分钟以内”。")
-        example_columns = st.columns(3)
-        for column, (label, query) in zip(example_columns, SAMPLE_QUERIES.items()):
-            if column.button(label, key=f"example_{label}", use_container_width=True):
-                st.session_state.meal_query = query
-                st.rerun()
+        examples = list(SAMPLE_QUERIES.items())
+        for row_start in range(0, len(examples), 3):
+            example_columns = st.columns(3)
+            for column, (label, query) in zip(example_columns, examples[row_start:row_start + 3]):
+                if column.button(label, key=f"example_{label}", use_container_width=True):
+                    st.session_state.meal_query = query
+                    st.rerun()
         query = st.text_area(
             "你的想法",
             key="meal_query",
@@ -513,8 +529,11 @@ def inventory_page() -> None:
                         request_id=str(uuid4()),
                     )
                 clear_flow()
-                suffix = "，营养数据暂缺" if result["is_custom"] else ""
-                st.session_state.inventory_notice = f"已添加{result['canonical_name']}{suffix}。"
+                st.session_state.inventory_notice = (
+                    "该食材已加入演示库存，但当前菜谱库暂无对应方案。营养数据暂缺。"
+                    if result["is_custom"]
+                    else f"已添加{result['canonical_name']}。"
+                )
                 st.rerun()
             except ExistingInventoryItem as exc:
                 st.session_state.pending_inventory_merge = {
@@ -585,6 +604,8 @@ def inventory_page() -> None:
             st.caption(
                 f"当前数量：{item['quantity']} {item['unit']} · 保质期：{expiry_text} · 存放位置：{item['location']}"
             )
+            if item.get("pantry_staple"):
+                st.caption("基础调味料：只做简单库存检查，不作为主要营养来源。")
             edit, delete = st.columns(2)
             if edit.button("修改", key=f"edit_inventory_{item_id}", use_container_width=True):
                 st.session_state.editing_inventory_id = item_id
@@ -659,7 +680,7 @@ def inventory_page() -> None:
 
     st.divider()
     with st.expander("恢复初始演示库存"):
-        st.caption("只恢复当前浏览会话的 9 项基础演示库存，不影响其他访问者。")
+        st.caption("只恢复当前浏览会话的 20 项基础演示库存，不影响其他访问者。")
         if st.button("恢复初始演示库存", key="restore_baseline_inventory", use_container_width=True):
             try:
                 with get_session() as session:
@@ -739,6 +760,14 @@ def records_page() -> None:
 
 def project_page() -> None:
     secondary_header("了解项目原理", "以下内容面向希望了解技术实现、工程验证和安全边界的访问者。")
+
+    with get_session() as session:
+        database_counts = database_catalog_counts(session)
+    recipe_counts = recipe_catalog_counts()
+    st.info(
+        f"当前 Demo 覆盖 {database_counts['foods']} 种内置/会话食材、"
+        f"{database_counts['aliases']} 条常用别名和 {recipe_counts['recipes']} 道结构化菜谱。"
+    )
 
     with st.expander("这个项目解决什么问题", expanded=True):
         st.write(
@@ -843,6 +872,7 @@ def project_page() -> None:
             "- 每个浏览会话使用独立的临时 SQLite 数据库。\n"
             "- 公开版只使用 Mock Provider，不连接外部模型，也不读取 API Key。\n"
             "- 推荐只是一般饮食演示，不构成医疗诊断或治疗建议。\n"
+            "- 营养数据为统一口径的演示估算，不代表具体品牌或烹饪损耗。\n"
             "- 页面关闭、会话断开或服务重启后，临时数据可能恢复到初始状态。"
         )
     reset_controls("project")

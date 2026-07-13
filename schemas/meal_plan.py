@@ -27,6 +27,9 @@ class MealPlan(BaseModel):
     plan_id: str = Field(min_length=4)
     title: str = Field(min_length=1)
     description: str = Field(min_length=1)
+    meal_type: str = Field(min_length=1)
+    difficulty: str = Field(min_length=1)
+    servings: int = Field(gt=0, le=10)
     estimated_minutes: int = Field(gt=0, le=180)
     calories_kcal: float = Field(gt=0, le=3000)
     protein_g: float = Field(ge=0, le=400)
@@ -36,5 +39,6 @@ class MealPlan(BaseModel):
     steps: list[str] = Field(min_length=1)
     reasons: list[str] = Field(min_length=1)
     warnings: list[str] = Field(default_factory=list)
+    substitutions: list[str] = Field(default_factory=list)
+    missing_ingredients: list[str] = Field(default_factory=list)
     retrieved_evidence_ids: list[int] = Field(default_factory=list)
-
