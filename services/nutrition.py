@@ -12,15 +12,20 @@ def estimate_nutrition(ingredients: list[dict[str, Any]], inventory: list[dict[s
         item = by_id.get(ingredient["canonical_item_id"])
         if not item:
             continue
+        nutrition_values = (
+            item.get("calories_per_100g"), item.get("protein_per_100g"),
+            item.get("carbs_per_100g"), item.get("fat_per_100g"),
+        )
+        if any(value is None for value in nutrition_values):
+            continue
         if item["unit"] not in {"g", "kg"}:
             # Count-based packaged nutrition is modeled per item in the synthetic seed.
             grams = ingredient["amount"] * 100 if item["unit"] in {"个", "piece"} else ingredient["amount"]
         else:
             grams = convert_amount(ingredient["amount"], ingredient["unit"], "g")
         ratio = grams / 100
-        totals["calories_kcal"] += item["calories_per_100g"] * ratio
-        totals["protein_g"] += item["protein_per_100g"] * ratio
-        totals["carbs_g"] += item["carbs_per_100g"] * ratio
-        totals["fat_g"] += item["fat_per_100g"] * ratio
+        totals["calories_kcal"] += float(item["calories_per_100g"]) * ratio
+        totals["protein_g"] += float(item["protein_per_100g"]) * ratio
+        totals["carbs_g"] += float(item["carbs_per_100g"]) * ratio
+        totals["fat_g"] += float(item["fat_per_100g"]) * ratio
     return {key: round(value, 1) for key, value in totals.items()}
-

@@ -11,6 +11,7 @@ class AgentState(TypedDict, total=False):
     user_profile: dict[str, Any]
     retrieved_context: list[dict[str, Any]]
     inventory_snapshot: list[dict[str, Any]]
+    eligible_inventory: list[dict[str, Any]]
     normalized_requirements: dict[str, Any]
     proposed_plan: dict[str, Any]
     validation_errors: list[str]
@@ -30,10 +31,10 @@ class AgentState(TypedDict, total=False):
 def initial_state(session_id: str, user_id: str, raw_query: str, **updates: Any) -> AgentState:
     base: AgentState = {"session_id": session_id, "user_id": user_id, "raw_query": raw_query,
                         "intent": "unknown", "retrieved_context": [], "inventory_snapshot": [],
+                        "eligible_inventory": [],
                         "normalized_requirements": {}, "validation_errors": [], "warnings": [],
                         "first_confirmation": None, "actual_consumption": [], "second_confirmation": None,
                         "transaction_id": None, "audit_events": [], "retry_count": 0,
                         "current_node": "start", "final_message": "", "error": None}
     base.update(updates)
     return base
-

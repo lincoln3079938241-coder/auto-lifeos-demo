@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from uuid import uuid4
 from typing import Any
+from datetime import date
 
 from llm.base import MealPlanProvider
 from schemas.meal_plan import IngredientUsage, MealPlan
@@ -57,9 +58,20 @@ class MockProvider(MealPlanProvider):
                 ingredient_dicts = [x.model_dump() for x in ingredients if x]
                 nutrition = estimate_nutrition(ingredient_dicts, inventory)
                 evidence_ids = [item["id"] for item in evidence]
+                selected_ids = {item["canonical_item_id"] for item in ingredient_dicts}
+                selected_inventory = [item for item in inventory if item["canonical_item_id"] in selected_ids]
+                warnings = ["一般饮食信息，不构成医疗建议"]
+                if any(not item.get("nutrition_available", True) for item in selected_inventory):
+                    warnings.append("部分食材营养数据暂缺，营养估算可能不完整")
+                if any(
+                    item.get("expiration_date")
+                    and 0 <= (item["expiration_date"] - date.today()).days <= 3
+                    for item in selected_inventory
+                ):
+                    warnings.append("方案包含即将过期的演示食材，请在保质期内使用")
                 return MealPlan(plan_id=str(uuid4()), title=title, description=description, estimated_minutes=minutes,
                                 calories_kcal=nutrition["calories_kcal"], protein_g=nutrition["protein_g"],
                                 carbs_g=nutrition["carbs_g"], fat_g=nutrition["fat_g"], ingredients=ingredients, steps=steps,
                                 reasons=["仅使用当前有效库存", "遵循已知过敏与忌口限制", "满足快速烹饪偏好"],
-                                warnings=["一般饮食信息，不构成医疗建议"], retrieved_evidence_ids=evidence_ids)
+                                warnings=warnings, retrieved_evidence_ids=evidence_ids)
         raise ValueError("没有满足库存、时间与饮食限制的可执行方案")

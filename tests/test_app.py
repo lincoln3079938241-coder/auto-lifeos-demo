@@ -24,6 +24,10 @@ def button(app: AppTest, label: str):
     return next(item for item in app.button if item.label == label)
 
 
+def button_key(app: AppTest, key: str):
+    return next(item for item in app.button if item.key == key)
+
+
 def quantities(app: AppTest) -> dict[str, float]:
     app.session_state["_workspace"].activate()
     with get_session() as session:
@@ -46,8 +50,122 @@ def test_first_visit_is_plain_and_actionable() -> None:
         assert "你今天想吃什么？" in text
         assert not any(term in text for term in ["LangGraph", "RAG", "Prompt", "SQLite", "Mock Provider"])
         assert button(app, "帮我推荐").disabled
+        assert button(app, "先调整演示库存")
         assert not any(item.label == "这个方案可以" for item in app.button)
         assert not any(item.label == "确认并更新演示库存" for item in app.button)
+    finally:
+        close(app)
+
+
+def test_home_secondary_entry_opens_inventory_page() -> None:
+    app = AppTest.from_file(str(APP_PATH), default_timeout=20).run()
+    try:
+        button(app, "先调整演示库存").click().run()
+        assert app.radio[0].value == "演示库存"
+        captions = " ".join(item.value for item in app.caption)
+        assert "智能助手会根据修改后的库存重新推荐" in captions
+    finally:
+        close(app)
+
+
+def test_inventory_page_add_and_modify() -> None:
+    app = AppTest.from_file(str(APP_PATH), default_timeout=30).run()
+    try:
+        app.radio[0].set_value("演示库存").run()
+        by_label = {item.label: item for item in app.text_input}
+        by_label["食材名称"].input("豆腐")
+        by_label["当前数量"].input("500")
+        by_label["保质期"].input("")
+        by_label["存放位置"].input("冷藏")
+        button(app, "添加食材").click().run()
+        assert any("已添加豆腐，营养数据暂缺" in item.value for item in app.success)
+
+        app.session_state["_workspace"].activate()
+        with get_session() as session:
+            tofu = next(row for row in list_inventory(session, DEMO_USER_ID) if row["canonical_name"] == "豆腐")
+        item_id = tofu["pantry_item_id"]
+
+        button_key(app, f"edit_inventory_{item_id}").click().run()
+        next(item for item in app.text_input if item.key == f"quantity_{item_id}").input("650")
+        next(item for item in app.text_input if item.key == f"location_{item_id}").input("冷冻")
+        button(app, "保存修改").click().run()
+        assert quantities(app)[tofu["canonical_item_id"]] == 650
+    finally:
+        close(app)
+
+
+def test_inventory_search_and_alias_duplicate_prompt() -> None:
+    app = AppTest.from_file(str(APP_PATH), default_timeout=30).run()
+    try:
+        app.radio[0].set_value("演示库存").run()
+        next(item for item in app.text_input if item.label == "搜索食材").input("鸡胸").run()
+        page_text = " ".join(item.value for item in app.markdown)
+        assert "鸡胸肉" in page_text
+        assert "番茄" not in page_text
+
+        next(item for item in app.text_input if item.label == "搜索食材").input("").run()
+        by_label = {item.label: item for item in app.text_input}
+        by_label["食材名称"].input("西红柿")
+        by_label["当前数量"].input("50")
+        by_label["保质期"].input("")
+        by_label["存放位置"].input("冷藏")
+        button(app, "添加食材").click().run()
+        assert any("库存中已经存在番茄，是否将本次数量增加到现有库存" in item.value for item in app.warning)
+        assert button(app, "合并数量")
+        assert button(app, "取消添加")
+        assert quantities(app)["tomato"] == 400
+    finally:
+        close(app)
+
+
+def test_inventory_page_confirms_delete() -> None:
+    app = AppTest.from_file(str(APP_PATH), default_timeout=30).run()
+    try:
+        app.radio[0].set_value("演示库存").run()
+        workspace = app.session_state["_workspace"]
+        workspace.activate()
+        with get_session() as session:
+            from services.inventory_editor import add_inventory_item
+
+            result = add_inventory_item(
+                session, workspace.session_id, DEMO_USER_ID, name="豆腐", quantity=500,
+                unit="g", expiration_date=None, location="冷藏"
+            )
+        app.run()
+        with get_session() as session:
+            tofu = next(row for row in list_inventory(session, DEMO_USER_ID) if row["canonical_name"] == "豆腐")
+        item_id = tofu["pantry_item_id"]
+        button_key(app, f"delete_inventory_{item_id}").click().run()
+        assert any("确定从当前演示库存中删除这个食材吗" in item.value for item in app.warning)
+        button_key(app, f"confirm_delete_{item_id}").click().run()
+        assert result["canonical_item_id"] not in quantities(app)
+    finally:
+        close(app)
+
+
+def test_inventory_page_restores_baseline() -> None:
+    app = AppTest.from_file(str(APP_PATH), default_timeout=30).run()
+    try:
+        app.radio[0].set_value("演示库存").run()
+        workspace = app.session_state["_workspace"]
+        workspace.activate()
+        with get_session() as session:
+            from services.inventory_editor import add_inventory_item, update_inventory_item
+
+            add_inventory_item(
+                session, workspace.session_id, DEMO_USER_ID, name="豆腐", quantity=500,
+                unit="g", expiration_date=None, location="冷藏"
+            )
+            chicken = next(row for row in list_inventory(session, DEMO_USER_ID)
+                           if row["canonical_item_id"] == "chicken_breast")
+            update_inventory_item(
+                session, workspace.session_id, DEMO_USER_ID, chicken["pantry_item_id"],
+                quantity=300, unit="g", expiration_date=None, location="冷藏"
+            )
+        app.run()
+        button(app, "恢复初始演示库存").click().run()
+        assert len(quantities(app)) == 9
+        assert quantities(app)["chicken_breast"] == 1500
     finally:
         close(app)
 

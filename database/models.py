@@ -36,10 +36,11 @@ class CanonicalFood(Base):
     canonical_name: Mapped[str] = mapped_column(String(100), unique=True)
     category: Mapped[str] = mapped_column(String(50))
     default_unit: Mapped[str] = mapped_column(String(20))
-    calories_per_100g: Mapped[float] = mapped_column(Float)
-    protein_per_100g: Mapped[float] = mapped_column(Float)
-    carbs_per_100g: Mapped[float] = mapped_column(Float)
-    fat_per_100g: Mapped[float] = mapped_column(Float)
+    calories_per_100g: Mapped[float | None] = mapped_column(Float, nullable=True)
+    protein_per_100g: Mapped[float | None] = mapped_column(Float, nullable=True)
+    carbs_per_100g: Mapped[float | None] = mapped_column(Float, nullable=True)
+    fat_per_100g: Mapped[float | None] = mapped_column(Float, nullable=True)
+    is_custom: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
 class FoodAlias(Base):
@@ -60,6 +61,8 @@ class PantryItem(Base):
     location: Mapped[str] = mapped_column(String(80), default="厨房")
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     version: Mapped[int] = mapped_column(Integer, default=1)
+    active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
 
 class PrivateKnowledge(Base):

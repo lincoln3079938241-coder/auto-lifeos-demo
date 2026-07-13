@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 from uuid import uuid4
 
 from sqlalchemy import select
@@ -26,9 +26,12 @@ def execute_deduction(session: Session, user_id: str, meal_plan_id: str, usages:
             resolved: list[tuple[PantryItem, float, dict]] = []
             for usage in usages:
                 item = session.scalar(select(PantryItem).where(PantryItem.user_id == user_id,
-                                      PantryItem.canonical_food_id == usage["canonical_item_id"]).with_for_update())
+                                      PantryItem.canonical_food_id == usage["canonical_item_id"],
+                                      PantryItem.active.is_(True)).with_for_update())
                 if not item:
                     raise InventoryTransactionError(f"库存中不存在: {usage['canonical_item_id']}")
+                if item.expiration_date and item.expiration_date < date.today():
+                    raise InventoryTransactionError(f"食材已经过期: {usage['canonical_item_id']}")
                 try:
                     change = convert_amount(float(usage["amount"]), usage["unit"], item.unit)
                 except ValueError as exc:
@@ -70,4 +73,3 @@ def undo_transaction(session: Session, transaction_id: str, session_id: str = "m
         tx.reversed_at = datetime.utcnow()
         session.add(AuditLog(session_id=session_id, user_id=tx.user_id, event_type="inventory_undo",
                              node_name="undo_transaction", payload_json=f'{{"transaction_id": "{transaction_id}"}}'))
-

@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import logging
 import sys
-from datetime import date
 from pathlib import Path
+from uuid import uuid4
 
 import pandas as pd
 import streamlit as st
@@ -18,6 +18,7 @@ from agent.state import initial_state
 from database.repositories import (
     latest_executable_transaction,
     list_inventory,
+    list_inventory_audit,
     list_inventory_transaction_lines,
     list_knowledge,
 )
@@ -26,6 +27,15 @@ from database.session import get_session
 from database.transactions import undo_transaction
 from rag.retriever import retrieve
 from services.experiments import PROMPTS, run_synthetic_experiment, summarize_results
+from services.inventory_editor import (
+    ExistingInventoryItem,
+    InventoryInputError,
+    add_inventory_item,
+    inventory_status,
+    restore_baseline_inventory,
+    soft_delete_inventory_item,
+    update_inventory_item,
+)
 from services.units import convert_amount
 from session_store import SessionWorkspace
 
@@ -64,6 +74,9 @@ st.markdown(
         border-radius:0 10px 10px 0; color:#53645a; font-size:.9rem; margin:.7rem 0 1rem;}
       .food-title {font-size:1.02rem; font-weight:750; color:#263c2e; margin-bottom:.3rem;}
       .food-meta {color:#66746b; font-size:.9rem; line-height:1.65;}
+      .inventory-name {font-size:1.05rem; font-weight:760; color:#263c2e;}
+      .inventory-status {display:inline-block; margin:.2rem 0 .6rem; padding:3px 9px; border-radius:999px;
+        background:#f1f6f2; color:#45634f; font-size:.78rem; font-weight:700;}
       .section-kicker {font-size:.78rem; font-weight:750; letter-spacing:.08em; color:#4f8a63; margin-bottom:.35rem;}
       .footer-note {color:#7c8881; font-size:.78rem; text-align:center; margin-top:1.5rem;}
       @media (max-width: 640px) {
@@ -137,6 +150,10 @@ def clear_flow(clear_query: bool = False) -> None:
     for key in list(st.session_state.keys()):
         if key.startswith("actual_use_"):
             del st.session_state[key]
+
+
+def go_to_inventory() -> None:
+    st.session_state.page_nav = "演示库存"
 
 
 def compact_boundaries() -> None:
@@ -363,6 +380,12 @@ def start_page() -> None:
             height=110,
             label_visibility="collapsed",
         )
+        st.button(
+            "先调整演示库存",
+            key="open_inventory_from_start",
+            on_click=go_to_inventory,
+            use_container_width=True,
+        )
         if st.button("帮我推荐", type="primary", disabled=not query.strip(), use_container_width=True):
             try:
                 with st.spinner("正在查看饮食习惯和现有食材，请稍等……"):
@@ -447,46 +470,210 @@ def start_page() -> None:
 
 
 def inventory_page() -> None:
-    secondary_header("演示库存", "这里展示当前浏览会话可以使用的虚拟食材。")
+    secondary_header(
+        "演示库存",
+        "这里是当前可用于推荐的演示食材。你可以添加、修改或删除食材，智能助手会根据修改后的库存重新推荐。",
+    )
     with get_session() as session:
         inventory = list_inventory(session, DEMO_USER_ID)
 
-    expired_count = sum(item["expired"] for item in inventory)
-    near_expiry = sum(
-        bool(item["expiration_date"] and 0 <= (item["expiration_date"] - date.today()).days <= 3)
-        for item in inventory
-    )
+    statuses = [inventory_status(item) for item in inventory]
+    expired_count = statuses.count("已过期")
+    near_expiry = statuses.count("即将过期")
     metrics = st.columns(3)
     metrics[0].metric("可以使用", len(inventory) - expired_count)
     metrics[1].metric("即将到期", near_expiry)
     metrics[2].metric("不能使用", expired_count)
 
-    frame = pd.DataFrame(inventory)
-    if not frame.empty:
-        frame["状态"] = frame.apply(
-            lambda row: "已过期"
-            if row["expired"]
-            else "即将到期"
-            if row["expiration_date"] and 0 <= (row["expiration_date"] - date.today()).days <= 3
-            else "可以使用",
-            axis=1,
-        )
-        frame = frame.rename(
-            columns={
-                "canonical_name": "食材",
-                "quantity": "当前数量",
-                "unit": "单位",
-                "expiration_date": "到期日",
-                "location": "存放位置",
-            }
-        )
-        st.dataframe(
-            frame[["食材", "当前数量", "单位", "到期日", "存放位置", "状态"]],
-            use_container_width=True,
-            hide_index=True,
-        )
-    st.caption("食材数量只属于当前浏览会话，其他访问者看不到也不会受到影响。")
-    reset_controls("inventory")
+    if notice := st.session_state.pop("inventory_notice", None):
+        st.success(notice)
+    if error := st.session_state.pop("inventory_error", None):
+        st.error(error)
+
+    with st.expander("添加食材"):
+        with st.form("add_inventory_form", clear_on_submit=False):
+            name = st.text_input("食材名称", placeholder="例如：豆腐或西红柿")
+            quantity = st.text_input("当前数量", placeholder="例如：500")
+            unit = st.selectbox("单位", ["g", "kg", "ml", "l", "个"])
+            expiration = st.text_input("保质期", placeholder="YYYY-MM-DD，可留空")
+            location = st.text_input("存放位置", value="冷藏")
+            submitted = st.form_submit_button("添加食材", type="primary", use_container_width=True)
+        if submitted:
+            try:
+                with get_session() as session:
+                    result = add_inventory_item(
+                        session,
+                        CURRENT_WORKSPACE.session_id,
+                        DEMO_USER_ID,
+                        name=name,
+                        quantity=quantity,
+                        unit=unit,
+                        expiration_date=expiration,
+                        location=location,
+                        request_id=str(uuid4()),
+                    )
+                clear_flow()
+                suffix = "，营养数据暂缺" if result["is_custom"] else ""
+                st.session_state.inventory_notice = f"已添加{result['canonical_name']}{suffix}。"
+                st.rerun()
+            except ExistingInventoryItem as exc:
+                st.session_state.pending_inventory_merge = {
+                    "canonical_name": exc.canonical_name,
+                    "name": name,
+                    "quantity": quantity,
+                    "unit": unit,
+                    "expiration_date": expiration,
+                    "location": location,
+                }
+                st.rerun()
+            except InventoryInputError as exc:
+                st.error(str(exc))
+            except Exception:
+                LOGGER.exception("Inventory add failed")
+                st.error("暂时无法添加食材，请检查填写内容后重试。")
+
+    pending_merge = st.session_state.get("pending_inventory_merge")
+    if pending_merge:
+        with st.container(border=True):
+            st.warning(
+                f"库存中已经存在{pending_merge['canonical_name']}，是否将本次数量增加到现有库存？"
+            )
+            merge, cancel_merge = st.columns(2)
+            if merge.button("合并数量", type="primary", use_container_width=True):
+                try:
+                    with get_session() as session:
+                        result = add_inventory_item(
+                            session,
+                            CURRENT_WORKSPACE.session_id,
+                            DEMO_USER_ID,
+                            **{key: pending_merge[key] for key in (
+                                "name", "quantity", "unit", "expiration_date", "location"
+                            )},
+                            merge_existing=True,
+                            request_id=str(uuid4()),
+                        )
+                    del st.session_state.pending_inventory_merge
+                    clear_flow()
+                    st.session_state.inventory_notice = (
+                        f"已合并{result['canonical_name']}，当前数量为 {result['quantity']} {result['unit']}。"
+                    )
+                    st.rerun()
+                except InventoryInputError as exc:
+                    st.error(str(exc))
+            if cancel_merge.button("取消添加", use_container_width=True):
+                del st.session_state.pending_inventory_merge
+                st.rerun()
+
+    search = st.text_input("搜索食材", placeholder="输入食材名称", key="inventory_search")
+    visible_inventory = [
+        item for item in inventory if not search.strip() or search.strip().lower() in item["canonical_name"].lower()
+    ]
+    st.caption(f"当前显示 {len(visible_inventory)} 项，共 {len(inventory)} 项。所有修改只属于当前浏览会话。")
+
+    if not visible_inventory:
+        st.info("没有找到匹配的食材。可以换一个关键词，或添加新食材。")
+
+    for item in visible_inventory:
+        item_id = item["pantry_item_id"]
+        with st.container(border=True):
+            st.markdown(f'<div class="inventory-name">{item["canonical_name"]}</div>', unsafe_allow_html=True)
+            st.markdown(
+                f'<span class="inventory-status">{inventory_status(item)}</span>',
+                unsafe_allow_html=True,
+            )
+            expiry_text = item["expiration_date"].isoformat() if item["expiration_date"] else "未设置"
+            st.caption(
+                f"当前数量：{item['quantity']} {item['unit']} · 保质期：{expiry_text} · 存放位置：{item['location']}"
+            )
+            edit, delete = st.columns(2)
+            if edit.button("修改", key=f"edit_inventory_{item_id}", use_container_width=True):
+                st.session_state.editing_inventory_id = item_id
+                st.session_state.pop("deleting_inventory_id", None)
+                st.rerun()
+            if delete.button("删除", key=f"delete_inventory_{item_id}", use_container_width=True):
+                st.session_state.deleting_inventory_id = item_id
+                st.session_state.pop("editing_inventory_id", None)
+                st.rerun()
+
+            if st.session_state.get("editing_inventory_id") == item_id:
+                with st.form(f"edit_inventory_form_{item_id}"):
+                    edit_quantity = st.text_input("当前数量", value=str(item["quantity"]), key=f"quantity_{item_id}")
+                    units = ["g", "kg", "ml", "l", "个"]
+                    unit_index = units.index(item["unit"]) if item["unit"] in units else 0
+                    edit_unit = st.selectbox("单位", units, index=unit_index, key=f"unit_{item_id}")
+                    edit_expiration = st.text_input(
+                        "保质期", value=item["expiration_date"].isoformat() if item["expiration_date"] else "",
+                        placeholder="YYYY-MM-DD，可留空", key=f"expiration_{item_id}"
+                    )
+                    edit_location = st.text_input("存放位置", value=item["location"], key=f"location_{item_id}")
+                    save = st.form_submit_button("保存修改", type="primary", use_container_width=True)
+                if save:
+                    try:
+                        with get_session() as session:
+                            update_inventory_item(
+                                session,
+                                CURRENT_WORKSPACE.session_id,
+                                DEMO_USER_ID,
+                                item_id,
+                                quantity=edit_quantity,
+                                unit=edit_unit,
+                                expiration_date=edit_expiration,
+                                location=edit_location,
+                                request_id=str(uuid4()),
+                            )
+                        del st.session_state.editing_inventory_id
+                        clear_flow()
+                        st.session_state.inventory_notice = f"已保存{item['canonical_name']}的修改。"
+                        st.rerun()
+                    except InventoryInputError as exc:
+                        st.error(str(exc))
+                    except Exception:
+                        LOGGER.exception("Inventory update failed")
+                        st.error("暂时无法保存修改，请检查填写内容后重试。")
+                if st.button("取消", key=f"cancel_edit_{item_id}", use_container_width=True):
+                    del st.session_state.editing_inventory_id
+                    st.rerun()
+
+            if st.session_state.get("deleting_inventory_id") == item_id:
+                st.warning("确定从当前演示库存中删除这个食材吗？之前的使用记录仍会保留。")
+                confirm_delete, cancel_delete = st.columns(2)
+                if confirm_delete.button("确认删除", type="primary", key=f"confirm_delete_{item_id}", use_container_width=True):
+                    try:
+                        with get_session() as session:
+                            soft_delete_inventory_item(
+                                session, CURRENT_WORKSPACE.session_id, DEMO_USER_ID, item_id,
+                                request_id=str(uuid4()),
+                            )
+                        del st.session_state.deleting_inventory_id
+                        clear_flow()
+                        st.session_state.inventory_notice = f"已删除{item['canonical_name']}，之前的使用记录仍然保留。"
+                        st.rerun()
+                    except InventoryInputError as exc:
+                        st.error(str(exc))
+                    except Exception:
+                        LOGGER.exception("Inventory delete failed")
+                        st.error("暂时无法删除这个食材，请稍后重试。")
+                if cancel_delete.button("取消", key=f"cancel_delete_{item_id}", use_container_width=True):
+                    del st.session_state.deleting_inventory_id
+                    st.rerun()
+
+    st.divider()
+    with st.expander("恢复初始演示库存"):
+        st.caption("只恢复当前浏览会话的 9 项基础演示库存，不影响其他访问者。")
+        if st.button("恢复初始演示库存", key="restore_baseline_inventory", use_container_width=True):
+            try:
+                with get_session() as session:
+                    restore_baseline_inventory(
+                        session, CURRENT_WORKSPACE.session_id, DEMO_USER_ID, request_id=str(uuid4())
+                    )
+                clear_flow(clear_query=True)
+                st.session_state.inventory_notice = "已恢复当前会话的初始演示库存。"
+                st.rerun()
+            except InventoryInputError as exc:
+                st.error(str(exc))
+            except Exception:
+                LOGGER.exception("Inventory baseline restore failed")
+                st.error("暂时无法恢复初始库存，请稍后重试。")
 
 
 def records_page() -> None:
@@ -494,6 +681,7 @@ def records_page() -> None:
     with get_session() as session:
         transactions = list_inventory_transaction_lines(session, DEMO_USER_ID)
         latest = latest_executable_transaction(session, DEMO_USER_ID)
+        inventory_edits = list_inventory_audit(session, CURRENT_WORKSPACE.session_id)
 
     if not transactions:
         st.info("完成一次饮食推荐并更新演示库存后，这里会显示食材变化。")
@@ -525,6 +713,27 @@ def records_page() -> None:
             except Exception:
                 LOGGER.exception("Record-page undo failed")
                 st.error("暂时无法撤销，请稍后重试。")
+    with st.expander("库存编辑记录"):
+        if not inventory_edits:
+            st.caption("新增、修改、删除或恢复库存后，这里会保留当前会话的审计记录。")
+        else:
+            labels = {
+                "inventory_edit_add": "添加食材",
+                "inventory_edit_merge": "合并数量",
+                "inventory_edit_restore": "重新启用食材",
+                "inventory_edit_update": "修改食材",
+                "inventory_edit_delete": "删除食材",
+                "inventory_edit_reset": "恢复初始库存",
+            }
+            rows = [
+                {
+                    "时间": entry["created_at"],
+                    "操作": labels.get(entry["event_type"], "库存编辑"),
+                    "食材": entry["payload"].get("food_name", "全部基础食材"),
+                }
+                for entry in inventory_edits
+            ]
+            st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
     reset_controls("records")
 
 
@@ -649,7 +858,7 @@ PAGES = {
 with st.sidebar:
     st.title("Auto-LifeOS")
     st.caption("饮食推荐公开演示")
-    selected_page = st.radio("页面导航", list(PAGES), label_visibility="collapsed")
+    selected_page = st.radio("页面导航", list(PAGES), label_visibility="collapsed", key="page_nav")
     st.divider()
     st.caption("无需登录 · 虚拟演示数据 · 不构成医疗建议")
 

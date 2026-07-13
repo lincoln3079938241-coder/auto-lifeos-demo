@@ -24,6 +24,8 @@ def eligible_inventory(profile: dict[str, Any], inventory: list[dict[str, Any]])
             warnings.append(f"已排除过敏原：{item['canonical_name']}"); continue
         if any(a in name for a in avoids):
             warnings.append(f"已排除忌口食材：{item['canonical_name']}"); continue
+        if item.get("expiration_date") and 0 <= (item["expiration_date"] - date.today()).days <= 3:
+            warnings.append(f"即将过期食材提醒：{item['canonical_name']}")
         allowed.append(item)
     return allowed, warnings
 

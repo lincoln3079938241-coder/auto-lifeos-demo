@@ -35,19 +35,30 @@ def update_profile(session: Session, user_id: str, **values: Any) -> None:
     session.commit()
 
 
-def list_inventory(session: Session, user_id: str, include_expired: bool = True) -> list[dict[str, Any]]:
-    rows = session.execute(
-        select(PantryItem, CanonicalFood).join(CanonicalFood, PantryItem.canonical_food_id == CanonicalFood.id)
-        .where(PantryItem.user_id == user_id).order_by(CanonicalFood.canonical_name)
-    ).all()
+def list_inventory(session: Session, user_id: str, include_expired: bool = True,
+                   include_inactive: bool = False) -> list[dict[str, Any]]:
+    statement = (
+        select(PantryItem, CanonicalFood)
+        .join(CanonicalFood, PantryItem.canonical_food_id == CanonicalFood.id)
+        .where(PantryItem.user_id == user_id)
+        .order_by(CanonicalFood.canonical_name)
+    )
+    if not include_inactive:
+        statement = statement.where(PantryItem.active.is_(True))
+    rows = session.execute(statement).all()
     today = date.today()
     result = []
     for item, food in rows:
         expired = bool(item.expiration_date and item.expiration_date < today)
         if include_expired or not expired:
+            nutrition_available = all(value is not None for value in (
+                food.calories_per_100g, food.protein_per_100g, food.carbs_per_100g, food.fat_per_100g
+            ))
             result.append({"pantry_item_id": item.id, "canonical_item_id": food.id, "canonical_name": food.canonical_name,
                            "quantity": item.quantity, "unit": item.unit, "expiration_date": item.expiration_date,
                            "location": item.location, "version": item.version, "expired": expired,
+                           "active": item.active, "deleted_at": item.deleted_at, "is_custom": food.is_custom,
+                           "nutrition_available": nutrition_available,
                            "calories_per_100g": food.calories_per_100g, "protein_per_100g": food.protein_per_100g,
                            "carbs_per_100g": food.carbs_per_100g, "fat_per_100g": food.fat_per_100g})
     return result
@@ -117,6 +128,22 @@ def list_audit(session: Session, session_id: str) -> list[dict[str, Any]]:
     rows = session.scalars(select(AuditLog).where(AuditLog.session_id == session_id).order_by(AuditLog.id)).all()
     return [{"node_name": r.node_name, "event_type": r.event_type, "payload": json.loads(r.payload_json),
              "created_at": r.created_at} for r in rows]
+
+
+def list_inventory_audit(session: Session, session_id: str) -> list[dict[str, Any]]:
+    rows = session.scalars(
+        select(AuditLog)
+        .where(AuditLog.session_id == session_id, AuditLog.event_type.like("inventory_edit_%"))
+        .order_by(AuditLog.id.desc())
+    ).all()
+    return [
+        {
+            "event_type": row.event_type,
+            "payload": json.loads(row.payload_json),
+            "created_at": row.created_at,
+        }
+        for row in rows
+    ]
 
 
 def latest_executable_transaction(session: Session, user_id: str) -> InventoryTransaction | None:

@@ -31,6 +31,23 @@ ALIASES = {
 }
 
 
+def baseline_pantry() -> list[tuple[str, float, str, date | None, str]]:
+    """Return a fresh synthetic inventory baseline with dates relative to today."""
+    tomorrow = date.today() + timedelta(days=1)
+    expired = date.today() - timedelta(days=1)
+    return [
+        ("chicken_breast", 1500, "g", tomorrow, "冷藏"),
+        ("tomato", 400, "g", tomorrow, "冷藏"),
+        ("rice", 2000, "g", None, "干货柜"),
+        ("egg", 8, "个", tomorrow, "冷藏"),
+        ("broccoli", 600, "g", tomorrow, "冷藏"),
+        ("oats", 1000, "g", None, "干货柜"),
+        ("milk", 1500, "ml", tomorrow, "冷藏"),
+        ("peanut_butter", 200, "g", None, "干货柜"),
+        ("yogurt", 1, "个", expired, "冷藏"),
+    ]
+
+
 def seed_database(session: Session) -> None:
     if session.get(User, DEMO_USER_ID):
         return
@@ -49,16 +66,7 @@ def seed_database(session: Session) -> None:
         ))
     for alias, food_id in ALIASES.items():
         session.add(FoodAlias(alias=alias.lower(), canonical_food_id=food_id))
-    tomorrow = date.today() + timedelta(days=1)
-    expired = date.today() - timedelta(days=1)
-    pantry = [
-        ("chicken_breast", 1500, "g", tomorrow, "冷藏"), ("tomato", 400, "g", tomorrow, "冷藏"),
-        ("rice", 2000, "g", None, "干货柜"), ("egg", 8, "个", tomorrow, "冷藏"),
-        ("broccoli", 600, "g", tomorrow, "冷藏"), ("oats", 1000, "g", None, "干货柜"),
-        ("milk", 1500, "ml", tomorrow, "冷藏"), ("peanut_butter", 200, "g", None, "干货柜"),
-        ("yogurt", 1, "个", expired, "冷藏"),
-    ]
-    for food_id, quantity, unit, expiry, location in pantry:
+    for food_id, quantity, unit, expiry, location in baseline_pantry():
         session.add(PantryItem(user_id=DEMO_USER_ID, canonical_food_id=food_id, quantity=quantity,
                                unit=unit, expiration_date=expiry, location=location))
     knowledge = [
@@ -71,4 +79,3 @@ def seed_database(session: Session) -> None:
         session.add(PrivateKnowledge(user_id=DEMO_USER_ID, title=title, content=content,
                                      source_type=source_type, tags=tags))
     session.commit()
-
