@@ -63,6 +63,15 @@ st.markdown(
       .badge-row {display:flex; flex-wrap:wrap; gap:8px; margin:1rem 0 1.35rem;}
       .badge {display:inline-flex; align-items:center; padding:5px 11px; border-radius:999px;
         background:#edf7f0; border:1px solid #d4e8da; color:#2d6340; font-size:.82rem; font-weight:650;}
+      .product-grid {display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:1rem 0 1.2rem;}
+      .product-card {border:1px solid #dfe8e2; border-radius:14px; padding:14px 15px; background:#fbfdfb;}
+      .product-card .eyebrow {font-size:.72rem; font-weight:780; letter-spacing:.09em; color:#4f8a63; margin-bottom:.45rem;}
+      .product-card strong {display:block; color:#20392a; font-size:1rem; margin-bottom:.35rem;}
+      .product-card p {font-size:.88rem; line-height:1.65; color:#657269; margin:0;}
+      .workflow-line {padding:12px 14px; border:1px solid #dfe8e2; border-radius:12px; background:#f6faf7;
+        color:#355743; line-height:1.8; font-size:.9rem; margin:.8rem 0 1.2rem;}
+      .recruiter-note {border:1px solid #efd39d; border-left:4px solid #d69b2d; border-radius:12px;
+        padding:12px 14px; background:#fffaf0; color:#694c18; margin:.8rem 0 1.25rem;}
       .progress-grid {display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin:1rem 0 1.4rem;}
       .progress-item {border:1px solid #e2e9e4; border-radius:12px; padding:10px 12px; background:#fafcfb;}
       .progress-item .number {font-size:.72rem; letter-spacing:.08em; color:#87928b;}
@@ -84,6 +93,7 @@ st.markdown(
         .block-container {padding:1rem 1rem 2.5rem;}
         .hero h1 {font-size:2rem;}
         .hero p {font-size:.98rem; line-height:1.65;}
+        .product-grid {grid-template-columns:1fr;}
         .progress-grid {grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px;}
         .progress-item {padding:9px 10px;}
         [data-testid="stHorizontalBlock"] {gap:.65rem;}
@@ -366,11 +376,40 @@ def reset_controls(key_prefix: str) -> None:
 
 def start_page() -> None:
     st.markdown(
-        '<div class="hero"><h1>今天吃什么？让智能助手帮你想一想</h1>'
-        '<p>告诉我你想吃什么、有什么要求，我会结合当前的演示食材，为你推荐一份简单的饮食方案。</p></div>',
+        '<div class="hero"><h1>今天吃什么？让智能助手把建议变成可执行计划</h1>'
+        '<p>输入时间、口味或饮食要求，系统会结合演示库存生成方案，并在两次明确确认后更新库存。'
+        '公开版无需登录或私密 Key，默认使用可复现的 Mock 演示模式。</p></div>',
         unsafe_allow_html=True,
     )
     compact_boundaries()
+    st.markdown(
+        """
+        <div class="product-grid">
+          <div class="product-card">
+            <div class="eyebrow">用户痛点</div>
+            <strong>建议与家中食材脱节</strong>
+            <p>临时决定吃什么时，用户还要自行核对库存、过期状态、忌口和实际用量。</p>
+          </div>
+          <div class="product-card">
+            <div class="eyebrow">产品目标</div>
+            <strong>把需求转成可校验计划</strong>
+            <p>让自然语言需求经过检索、库存与饮食规则校验，再进入可确认的执行流程。</p>
+          </div>
+          <div class="product-card">
+            <div class="eyebrow">核心价值</div>
+            <strong>可控、可追踪、可回退</strong>
+            <p>模型或 Mock 只负责提出方案；规则、双确认和事务机制控制副作用。</p>
+          </div>
+        </div>
+        <div class="workflow-line"><b>主要流程：</b>
+        用户需求输入 → 意图理解 → 检索和方案生成 → 库存及饮食规则校验 → 用户确认
+        → 库存事务更新 → 结果追踪与异常回退</div>
+        <div class="recruiter-note"><b>3 分钟建议体验：</b>
+        先点“高蛋白低脂晚餐”观察需求与规则校验；确认方案后修改实际用量，体验双阶段确认；
+        完成库存更新后查看记录并撤销，验证事务与回退。</div>
+        """,
+        unsafe_allow_html=True,
+    )
     help_panel()
 
     state = st.session_state.get("agent_state")
@@ -758,7 +797,7 @@ def records_page() -> None:
 
 
 def project_page() -> None:
-    secondary_header("了解项目原理", "以下内容面向希望了解技术实现、工程验证和安全边界的访问者。")
+    secondary_header("产品说明", "面向招聘者与产品同学，说明用户场景、Agent 工作流、职责边界、评测和迭代计划。")
 
     recipe_counts = recipe_catalog_counts()
     st.info(
@@ -766,19 +805,55 @@ def project_page() -> None:
         f"{len(ALIASES)} 条常用别名和 {recipe_counts['recipes']} 道结构化菜谱。"
     )
 
-    with st.expander("这个项目解决什么问题", expanded=True):
-        st.write(
-            "很多饮食推荐只给出文字建议，却不知道家里有什么食材，也不会在执行前再次确认。"
-            "这个演示把需求理解、饮食习惯、现有食材和两次确认连成一个可撤销的流程。"
+    with st.expander("目标用户与核心场景", expanded=True):
+        st.markdown(
+            "- **目标用户：** 希望减少日常饮食决策成本、同时管理家庭食材的个人或家庭用户。\n"
+            "- **即时决策：** 根据时间、口味和饮食要求，从现有食材中得到一份可执行方案。\n"
+            "- **库存联动：** 在实际使用后更新食材数量，并保留前后变化与撤销入口。\n"
+            "- **安全边界：** 过敏、忌口、过期、单位和库存不足由确定性规则拦截；不提供医疗建议。"
         )
 
-    with st.expander("系统是怎样得出推荐的"):
+    with st.expander("用户旅程与关键决策点"):
         st.markdown(
-            "**普通用户看到的流程**\n\n"
-            "说出需求 → 查看饮食习惯和食材 → 生成方案 → 检查是否可执行 → 两次确认 → 更新演示库存\n\n"
-            "**技术实现**\n\n"
-            "LangGraph 负责流程编排；Pydantic 约束结构化计划；Python guardrails 检查过期食材、过敏原、单位和库存；"
-            "SQLite 事务负责更新与撤销。"
+            "1. **表达需求：** 用户输入时间、口味、食材或饮食约束。\n"
+            "2. **理解与检索：** 系统读取虚拟用户档案、知识条目和当前库存。\n"
+            "3. **查看方案：** 用户看到结构化菜谱、推荐原因、库存来源和风险提示。\n"
+            "4. **第一次确认：** 只确认方案方向，此时库存不会改变。\n"
+            "5. **校正实际用量：** 用户可修改真实使用量。\n"
+            "6. **第二次确认：** 用户明确授权库存事务更新。\n"
+            "7. **追踪与回退：** 展示扣减前后、执行轨迹和撤销入口。"
+        )
+
+    with st.expander("功能架构与 Agent 工作流"):
+        st.markdown(
+            "**功能架构**\n\n"
+            "- 交互层：需求输入、方案卡片、双阶段确认、库存与记录页面；\n"
+            "- 编排层：LangGraph `StateGraph` 管理节点、条件路由、重试和回退；\n"
+            "- 能力层：TF-IDF 检索、结构化方案生成、实体归一化和确定性校验；\n"
+            "- 数据层：虚拟用户档案、知识、库存、饮食记录、事务与审计日志。\n\n"
+            "**Agent 工作流**\n\n"
+            "需求输入 → 意图路由 → 加载档案/知识/库存 → 实体归一化 → 方案生成 → "
+            "规则校验 → 必要时修订 → 第一次确认 → 实际用量 → 第二次确认 → "
+            "库存事务 → 饮食记录与审计 → 最终结果。"
+        )
+
+    with st.expander("规则与模型的职责边界"):
+        st.markdown(
+            "| 职责 | Mock / 可插拔 Provider | 确定性代码与数据库 |\n"
+            "|---|---|---|\n"
+            "| 需求理解与候选方案 | 提出结构化 `MealPlan` | 校验 Pydantic 合约 |\n"
+            "| 知识参考 | 使用检索证据组织方案 | TF-IDF 只返回证据，不声明库存事实 |\n"
+            "| 安全与可执行性 | 不拥有最终决定权 | 检查过敏、忌口、过期、单位、数量和范围 |\n"
+            "| 库存副作用 | 不直接写库存 | 双确认后由 SQLite 原子事务执行 |\n"
+            "| 公开演示 | 强制使用 Mock，不调用 GPT/Qwen | 每个会话独立临时数据库 |"
+        )
+
+    with st.expander("异常回退机制"):
+        st.markdown(
+            "- Provider 缺失、超时或输出不符合结构时，主项目可回退到 Mock；公开版从一开始就强制使用 Mock。\n"
+            "- 方案校验失败会进入修订节点，最多按既定次数重试；仍失败时返回可理解的提示，不执行库存操作。\n"
+            "- 第一次确认拒绝、第二次确认缺失或实际用量非法时，库存保持不变。\n"
+            "- 事务中的任一食材检查失败会整体回滚；成功事务可通过页面撤销，并写入审计记录。"
         )
 
     with st.expander("我的饮食习惯（知识检索）"):
@@ -857,20 +932,34 @@ def project_page() -> None:
         checks = pd.DataFrame(
             [
                 {"检查范围": "主项目自动化测试", "最近验证": "27 passed"},
-                {"检查范围": "公开版自动化测试", "最近验证": "会话隔离、两次确认、撤销与页面主流程"},
-                {"检查范围": "公开网站", "最近验证": "桌面、手机尺寸与 HTTP 200"},
+                {"检查范围": "公开版自动化测试", "最近验证": "61 passed"},
+                {"检查范围": "公开网站", "最近验证": "匿名访问、桌面与手机尺寸、主要流程"},
             ]
         )
         st.dataframe(checks, use_container_width=True, hide_index=True)
 
-    with st.expander("安全与限制"):
+    with st.expander("评测方法"):
         st.markdown(
-            "- 所有用户、食材、饮食习惯和实验数据均为 synthetic/sample。\n"
-            "- 每个浏览会话使用独立的临时 SQLite 数据库。\n"
-            "- 公开版只使用 Mock Provider，不连接外部模型，也不读取 API Key。\n"
-            "- 推荐只是一般饮食演示，不构成医疗诊断或治疗建议。\n"
-            "- 营养数据为统一口径的演示估算，不代表具体品牌或烹饪损耗。\n"
-            "- 页面关闭、会话断开或服务重启后，临时数据可能恢复到初始状态。"
+            "- **自动化测试：** 覆盖意图路由、实体别名、规则边界、双阶段确认、事务原子性、撤销和会话隔离。\n"
+            "- **合成案例对比：** 20 个 synthetic/sample 案例分别运行两种 Prompt，观察结构解析、规则通过、"
+            "幻觉食材、重试、澄清和可执行性；不等同于真实用户 A/B 测试。\n"
+            "- **bad case 分类：** 结构不合法、食材不存在、库存不足、单位不兼容、过敏/忌口、过期、"
+            "需求不清与事务失败。\n"
+            "- **体验验收：** 首次访问无需 Key；招聘者能完成生成、两次确认、更新、追踪和撤销。"
+        )
+
+    with st.expander("已知限制与后续迭代"):
+        st.markdown(
+            "**已知限制**\n\n"
+            "- 所有用户、食材、饮食习惯和实验数据均为 synthetic/sample；没有真实用户访谈或线上效果数据。\n"
+            "- 公开版只使用 Mock Provider，不代表真实 LLM 的推理质量，也不调用 GPT/Qwen。\n"
+            "- 营养数据为演示估算；单位换算与替代规则覆盖有限，不构成医疗建议。\n"
+            "- 临时 SQLite 适合单会话演示，不代表生产级多用户架构；服务重启后数据可能重置。\n\n"
+            "**后续迭代**\n\n"
+            "- 先补充任务型可用性测试脚本和统一 bad case 记录，再考虑接入真实 Provider 做受控对比；\n"
+            "- 扩展单位、包装规格和替代规则，并为规则命中增加更清晰的用户解释；\n"
+            "- 增加评测集版本管理与回归报告，避免只依赖单次演示结果；\n"
+            "- 若进入真实试用，再设计隐私授权、数据持久化和高风险内容审核。"
         )
     reset_controls("project")
 
@@ -879,7 +968,7 @@ PAGES = {
     "开始体验": start_page,
     "演示库存": inventory_page,
     "使用记录": records_page,
-    "了解项目原理": project_page,
+    "产品说明": project_page,
 }
 
 with st.sidebar:
