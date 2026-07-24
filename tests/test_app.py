@@ -48,7 +48,10 @@ def test_first_visit_is_plain_and_actionable() -> None:
     try:
         assert not app.exception
         text = " ".join(element.value for element in app.markdown)
-        assert "今天吃什么？让智能助手帮你想一想" in text
+        assert "今天吃什么？让智能助手把建议变成可执行计划" in text
+        assert "用户痛点" in text
+        assert "产品目标" in text
+        assert "核心价值" in text
         assert "无需登录" in text
         assert "使用虚拟演示数据" in text
         assert "不构成医疗建议" in text
@@ -268,15 +271,19 @@ def test_completion_undo_button_restores_inventory() -> None:
 def test_technical_content_remains_under_project_page() -> None:
     app = AppTest.from_file(str(APP_PATH), default_timeout=30).run()
     try:
-        app.radio[0].set_value("了解项目原理").run()
+        app.radio[0].set_value("产品说明").run()
         labels = {item.label for item in app.expander}
-        assert "这个项目解决什么问题" in labels
-        assert "系统是怎样得出推荐的" in labels
+        assert "目标用户与核心场景" in labels
+        assert "用户旅程与关键决策点" in labels
+        assert "功能架构与 Agent 工作流" in labels
+        assert "规则与模型的职责边界" in labels
+        assert "异常回退机制" in labels
         assert "我的饮食习惯（知识检索）" in labels
         assert "系统是怎样得出结果的（Agent Trace）" in labels
         assert "两种推荐方式对比（Prompt A/B）" in labels
         assert "工程测试" in labels
-        assert "安全与限制" in labels
+        assert "评测方法" in labels
+        assert "已知限制与后续迭代" in labels
         button(app, "运行两种推荐方式对比").click().run()
         assert app.session_state["ab_results"]
         assert len(app.session_state["ab_results"]) == 40
